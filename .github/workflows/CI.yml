@@ -71,6 +71,17 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install curl
 
+      - name: Set up vcpkg caching (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/vcpkg/downloads
+            C:/Users/runneradmin/AppData/Local/vcpkg/archives
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('hica.hml') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
+
       - name: Install libcurl (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
