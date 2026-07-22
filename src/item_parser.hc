@@ -55,25 +55,25 @@ pub fun parse_operator(req: RequestSpec, item: string) : RequestSpec =>
     Some(idx) => {
       let name = item[0:idx]
       let val = item[idx+2:]
-      RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries + [QueryParam { name: name, value: val }], json_fields: req.json_fields, filter_path: req.filter_path }
+      RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries + [QueryParam { name: name, content: val }], json_fields: req.json_fields, filter_path: req.filter_path }
     },
     None => match index_of(item, ":=") {
       Some(idx) => {
         let name = item[0:idx]
         let val = item[idx+2:]
-        RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries, json_fields: req.json_fields + [JsonField { name: name, value: val, is_raw: true }], filter_path: req.filter_path }
+        RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries, json_fields: req.json_fields + [JsonField { name: name, content: val, is_raw: true }], filter_path: req.filter_path }
       },
       None => match index_of(item, "=") {
         Some(idx) => {
           let name = item[0:idx]
           let val = item[idx+1:]
-          RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries, json_fields: req.json_fields + [JsonField { name: name, value: val, is_raw: false }], filter_path: req.filter_path }
+          RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries, json_fields: req.json_fields + [JsonField { name: name, content: val, is_raw: false }], filter_path: req.filter_path }
         },
         None => match index_of(item, ":") {
           Some(idx) => {
             let name = item[0:idx]
             let val = item[idx+1:]
-            RequestSpec { url: req.url, method: req.method, headers: req.headers + [Header { name: name, value: val }], queries: req.queries, json_fields: req.json_fields, filter_path: req.filter_path }
+            RequestSpec { url: req.url, method: req.method, headers: req.headers + [Header { name: name, content: val }], queries: req.queries, json_fields: req.json_fields, filter_path: req.filter_path }
           },
           None => req
         }

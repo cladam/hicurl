@@ -3,17 +3,17 @@ import "std/string"
 
 pub struct Header {
   name: string,
-  value: string
+  content: string
 }
 
 pub struct QueryParam {
   name: string,
-  value: string
+  content: string
 }
 
 pub struct JsonField {
   name: string,
-  value: string,
+  content: string,
   is_raw: bool
 }
 
