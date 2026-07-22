@@ -1,10 +1,12 @@
 // hicurl - a modern HTTP CLI
 
 import "std/cli"
-import "parser"
+import "cli_spec"
 import "item_parser"
 import "request"
 import "http_exec"
+import "filter"
+import "json"
 
 fun main() {
   let spec = make_spec()
@@ -28,9 +30,17 @@ fun main() {
       println("Parsed URL: {req.url}")
       println("Parsed Method: {req.method}")
       
-      let res_body = execute_request(req)
-      println("Response:")
-      println(res_body)
+      let resp = execute_request(req)
+      match req.filter_path {
+        Some(path) => {
+          let filtered = filter_response(resp.status, resp.body, resp.headers, path)
+          println(filtered)
+        },
+        None => {
+          println("Response Body:")
+          println(resp.body)
+        }
+      }
     }
   }
 }

@@ -2,7 +2,7 @@ extern import "http_ffi"
 extern import "http"
 import "request"
 
-pub fun execute_request(req: RequestSpec) : string {
+pub fun execute_request(req: RequestSpec) {
   // First, convert queries to list of Param
   let query_string = join(map(req.queries, (q) => q.name + "=" + q.content), "&")
   let full_url = if query_string == "" {
@@ -48,5 +48,5 @@ pub fun execute_request(req: RequestSpec) : string {
 
   // Execute using http_request_full from http_ffi
   let resp = http_request_full(to_upper(req.method), full_url, body_str, content_type, headers_str)
-  resp.body
+  resp
 }

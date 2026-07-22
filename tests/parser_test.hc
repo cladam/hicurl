@@ -27,7 +27,7 @@ test "parse headers with colon" {
   // Let's check headers. Since indexing with [] can be partial/unsafe, we can match on list
   let h0 = match req.headers {
     [h, .._] => h,
-    _ => Header { name: "", content: "" }
+    _ => HttpHeader { name: "", content: "" }
   }
   assert(h0.name == "Accept")
   assert(h0.content == "application/json")

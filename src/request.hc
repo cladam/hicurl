@@ -1,7 +1,7 @@
 import "std/list"
 import "std/string"
 
-pub struct Header {
+pub struct HttpHeader {
   name: string,
   content: string
 }
@@ -20,7 +20,7 @@ pub struct JsonField {
 pub struct RequestSpec {
   url: string,
   method: string,
-  headers: list<Header>,
+  headers: list<HttpHeader>,
   queries: list<QueryParam>,
   json_fields: list<JsonField>,
   filter_path: maybe<string>

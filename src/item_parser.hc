@@ -39,8 +39,7 @@ pub fun parse_rest(req: RequestSpec, first_arg: string, rest: list<string>) : Re
 
 pub fun parse_single_item(req: RequestSpec, item: string) : RequestSpec =>
   if starts_with(item, ".") || starts_with(item, ":") {
-    // It's a filter if it starts with . or is :status/:headers. Wait, : can also be header.
-    // If it has no other colon it might be a filter. For now, let's assume it's a filter if it's exact ":status" or ":headers"
+    // For now, let's assume it's a filter if it's exact ":status" or ":headers"
     if item == ":status" || item == ":headers" || starts_with(item, ".") || starts_with(item, ":header.") {
       RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries, json_fields: req.json_fields, filter_path: Some(item) }
     } else {
@@ -73,7 +72,7 @@ pub fun parse_operator(req: RequestSpec, item: string) : RequestSpec =>
           Some(idx) => {
             let name = item[0:idx]
             let val = item[idx+1:]
-            RequestSpec { url: req.url, method: req.method, headers: req.headers + [Header { name: name, content: val }], queries: req.queries, json_fields: req.json_fields, filter_path: req.filter_path }
+            RequestSpec { url: req.url, method: req.method, headers: req.headers + [HttpHeader { name: name, content: val }], queries: req.queries, json_fields: req.json_fields, filter_path: req.filter_path }
           },
           None => req
         }
