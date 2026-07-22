@@ -6,6 +6,8 @@
 }
 
 @dependencies {
+    json: "latest"
+    http: "latest"
 }
 
 @description {

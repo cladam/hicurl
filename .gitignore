@@ -4,6 +4,8 @@ lib/
 vendor/
 .clinerules
 
+docs/hicurl-design.md
+
 src/*
 !src/*.hc
 
