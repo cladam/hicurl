@@ -1,0 +1,82 @@
+import "std/list"
+import "std/string"
+import "request"
+
+pub fun parse_items(args: list<string>) : RequestSpec {
+  let initial = empty_request()
+  match args {
+    [] => initial,
+    [url, ..rest] => parse_rest(initial, url, rest)
+  }
+}
+
+pub fun parse_rest(req: RequestSpec, first_arg: string, rest: list<string>) : RequestSpec {
+  let is_method = match to_lower(first_arg) {
+    "get" | "post" | "put" | "patch" | "delete" | "head" => true,
+    _ => false
+  }
+
+  let (method, url, items) = if is_method {
+    match rest {
+      [] => (first_arg, "", []),
+      [u, ..more] => (first_arg, u, more)
+    }
+  } else {
+    ("get", first_arg, rest)
+  }
+
+  let base_req = RequestSpec {
+    url: url,
+    method: to_lower(method),
+    headers: req.headers,
+    queries: req.queries,
+    json_fields: req.json_fields,
+    filter_path: req.filter_path
+  }
+  
+  fold(items, base_req, parse_single_item)
+}
+
+pub fun parse_single_item(req: RequestSpec, item: string) : RequestSpec =>
+  if starts_with(item, ".") || starts_with(item, ":") {
+    // It's a filter if it starts with . or is :status/:headers. Wait, : can also be header.
+    // If it has no other colon it might be a filter. For now, let's assume it's a filter if it's exact ":status" or ":headers"
+    if item == ":status" || item == ":headers" || starts_with(item, ".") || starts_with(item, ":header.") {
+      RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries, json_fields: req.json_fields, filter_path: Some(item) }
+    } else {
+      parse_operator(req, item)
+    }
+  } else {
+    parse_operator(req, item)
+  }
+
+pub fun parse_operator(req: RequestSpec, item: string) : RequestSpec =>
+  match index_of(item, "==") {
+    Some(idx) => {
+      let name = item[0:idx]
+      let val = item[idx+2:]
+      RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries + [QueryParam { name: name, value: val }], json_fields: req.json_fields, filter_path: req.filter_path }
+    },
+    None => match index_of(item, ":=") {
+      Some(idx) => {
+        let name = item[0:idx]
+        let val = item[idx+2:]
+        RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries, json_fields: req.json_fields + [JsonField { name: name, value: val, is_raw: true }], filter_path: req.filter_path }
+      },
+      None => match index_of(item, "=") {
+        Some(idx) => {
+          let name = item[0:idx]
+          let val = item[idx+1:]
+          RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries, json_fields: req.json_fields + [JsonField { name: name, value: val, is_raw: false }], filter_path: req.filter_path }
+        },
+        None => match index_of(item, ":") {
+          Some(idx) => {
+            let name = item[0:idx]
+            let val = item[idx+1:]
+            RequestSpec { url: req.url, method: req.method, headers: req.headers + [Header { name: name, value: val }], queries: req.queries, json_fields: req.json_fields, filter_path: req.filter_path }
+          },
+          None => req
+        }
+      }
+    }
+  }

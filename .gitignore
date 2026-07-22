@@ -5,6 +5,7 @@ vendor/
 .clinerules
 
 docs/hicurl-design.md
+docs/the-plan.md
 
 src/*
 !src/*.hc
