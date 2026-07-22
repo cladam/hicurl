@@ -1,4 +1,4 @@
-name: Build, test and publish
+name: Build, Test, and Release
 
 permissions:
   contents: write
@@ -13,35 +13,92 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Unit tests (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+  build:
+    name: Build & Test (${{ matrix.artifact }})
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            artifact: hicurl-linux-x86_64
+          - os: ubuntu-24.04-arm
+            artifact: hicurl-linux-arm64
+          - os: macos-latest
+            artifact: hicurl-macos-arm64
+          - os: windows-latest
+            artifact: hicurl-windows-x86_64
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Koka compiler
+      - name: Install Koka (Unix)
+        if: runner.os != 'Windows'
         run: |
           curl -sSL https://github.com/koka-lang/koka/releases/latest/download/install.sh | sudo sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Install hica compiler
+      - name: Install Koka (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          curl -sSL -o "$env:TEMP\install-koka.bat" https://github.com/koka-lang/koka/releases/latest/download/install.bat
+          & "$env:TEMP\install-koka.bat"
+          "$env:LOCALAPPDATA\koka\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
+
+      - name: Install hica compiler (Unix)
+        if: runner.os != 'Windows'
         run: |
           curl -fsSL https://www.hica.dev/install.sh | sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install hica compiler (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/cladam/hica/releases/latest/download/hica-windows-x86_64.zip" -OutFile "$env:TEMP\hica.zip"
+          Expand-Archive -Path "$env:TEMP\hica.zip" -DestinationPath "$env:LOCALAPPDATA\hica\bin" -Force
+          "$env:LOCALAPPDATA\hica\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
 
       - name: Verify compiler versions
         run: |
           koka --version
           hica --version
 
-      - name: Install C library dependencies (Linux only)
-        if: matrix.os == 'ubuntu-latest'
+      - name: Install libcurl (Linux)
+        if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
 
-      - name: Run unit tests
+      - name: Install libcurl (macOS)
+        if: runner.os == 'macOS'
+        run: brew install curl
+
+      - name: Install libcurl (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          vcpkg install curl:x64-windows
+          vcpkg integrate install
+
+      - name: Adjust hica.hml for Linux
+        if: runner.os == 'Linux'
+        run: |
+          sed -i \
+            -e 's| --ccincdir=/opt/homebrew/include||g' \
+            -e 's| --cclinkopts=-L/opt/homebrew/lib||g' \
+            hica.hml
+
+      - name: Adjust hica.hml for Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          (Get-Content hica.hml) -replace '--ccincdir=/opt/homebrew/include', '--ccincdir=C:/vcpkg/installed/x64-windows/include' -replace '--cclinkopts=-L/opt/homebrew/lib', '--cclinkopts=/LIBPATH:C:/vcpkg/installed/x64-windows/lib' | Set-Content hica.hml
+
+      - name: Build binary
+        run: |
+          hica fetch
+          hica build
+
+      - name: Run unit tests (Unix)
+        if: runner.os != 'Windows'
         run: |
           set +e
           failed=0
@@ -62,51 +119,77 @@ jobs:
           fi
           exit $failed
 
+      - name: Run unit tests (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $failed = 0
+          $ran = 0
+          Get-ChildItem tests/*_test.hc | ForEach-Object {
+            $ran++
+            $f = $_.FullName
+            Write-Host "=== $f ==="
+            $output = & hica test $f 2>&1
+            Write-Host $output
+            if ($output -match "failed") {
+              $failed = 1
+            }
+          }
+          if ($ran -eq 0) {
+            Write-Error "error: no test files matched tests/*_test.hc"
+            exit 1
+          }
+          if ($failed -eq 1) {
+            exit 1
+          }
+
+      - name: Strip binary (Linux)
+        if: runner.os == 'Linux'
+        run: strip hicurl
+
+      - name: Ad-hoc codesign (macOS)
+        if: runner.os == 'macOS'
+        run: codesign --sign - --force hicurl
+
+      - name: Package (Unix)
+        if: runner.os != 'Windows'
+        run: tar czf ${{ matrix.artifact }}.tar.gz hicurl
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path hicurl.exe -DestinationPath ${{ matrix.artifact }}.zip
+
+      - name: Upload artifact (Unix)
+        if: runner.os != 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}.tar.gz
+
+      - name: Upload artifact (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}.zip
+
   release:
-    name: Build and publish release binary (${{ matrix.os }})
-    needs: test
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            binary_name: hicurl-linux-x86_64
-          - os: macos-latest
-            binary_name: hicurl-macos-arm64
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
 
-      - name: Install Koka compiler
-        run: |
-          curl -sSL https://github.com/koka-lang/koka/releases/latest/download/install.sh | sudo sh
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-      - name: Install hica compiler
-        run: |
-          curl -fsSL https://www.hica.dev/install.sh | sh
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-      - name: Install C library dependencies (Linux only)
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
-
-      - name: Build release binary (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sed -i \
-            -e 's| --ccincdir=/opt/homebrew/include||g' \
-            -e 's| --cclinkopts=-L/opt/homebrew/lib||g' \
-            hica.hml
-          hica fetch && hica build -o ${{ matrix.binary_name }}
-
-      - name: Build release binary (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          hica fetch && hica build -o ${{ matrix.binary_name }}
-
-      - name: Create GitHub release and upload binary
+      - name: Create release
         uses: softprops/action-gh-release@v2
         with:
+          files: |
+            *.tar.gz
+            *.zip
           generate_release_notes: true
-          files: ${{ matrix.binary_name }}
