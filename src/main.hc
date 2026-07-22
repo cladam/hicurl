@@ -4,6 +4,7 @@ import "std/cli"
 import "parser"
 import "item_parser"
 import "request"
+import "http_exec"
 
 fun main() {
   let spec = make_spec()
@@ -26,6 +27,10 @@ fun main() {
       let req = parse_items(pos)
       println("Parsed URL: {req.url}")
       println("Parsed Method: {req.method}")
+      
+      let res_body = execute_request(req)
+      println("Response:")
+      println(res_body)
     }
   }
 }

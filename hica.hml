@@ -10,6 +10,10 @@
     http: "latest"
 }
 
+@koka {
+    flags: "--cclib=curl --ccincdir=/opt/homebrew/include --cclinkopts=-L/opt/homebrew/lib"
+}
+
 @description {
     summary: "hicurl - a modern HTTP CLI"
     author: "cladam"
