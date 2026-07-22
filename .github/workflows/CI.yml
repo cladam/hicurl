@@ -54,14 +54,15 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://github.com/cladam/hica/releases/latest/download/hica-windows-x86_64.zip" -OutFile "$env:TEMP\hica.zip"
-          Expand-Archive -Path "$env:TEMP\hica.zip" -DestinationPath "$env:LOCALAPPDATA\hica\bin" -Force
-          "$env:LOCALAPPDATA\hica\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
+          curl -fsSL -o "$env:TEMP\install-hica.ps1" https://www.hica.dev/install.ps1
+          & "$env:TEMP\install-hica.ps1"
+          "$env:LOCALAPPDATA\hica" | Out-File -Append -FilePath $env:GITHUB_PATH
 
       - name: Verify compiler versions
         run: |
           koka --version
           hica --version
+        shell: bash
 
       - name: Install libcurl (Linux)
         if: runner.os == 'Linux'
@@ -70,17 +71,6 @@ jobs:
       - name: Install libcurl (macOS)
         if: runner.os == 'macOS'
         run: brew install curl
-
-      - name: Set up vcpkg caching (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: |
-            C:/vcpkg/downloads
-            C:/Users/runneradmin/AppData/Local/vcpkg/archives
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('hica.hml') }}
-          restore-keys: |
-            vcpkg-${{ runner.os }}-
 
       - name: Install libcurl (Windows)
         if: runner.os == 'Windows'
