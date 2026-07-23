@@ -200,22 +200,25 @@ jobs:
             $ran++
             $f = $_.FullName
             Write-Host "=== $f ==="
-            # Compile the test using hica test (compiles tests/<name>.exe but fails to run it due to './' path prefix)
+            
+            # Run hica test to compile
             $output = & hica test $f 2>&1
             Write-Host $output
-            
-            # Since hica test fails on running, we execute the compiled test binary manually
+
             $stem = [System.IO.Path]::GetFileNameWithoutExtension($f)
-            $bin = "tests/$stem.exe"
+            $bin = "tests\$stem.exe"
+
             if (Test-Path $bin) {
               Write-Host "Running compiled test binary: $bin"
-              & "./$bin"
+              & ".\$bin"
               if ($LASTEXITCODE -ne 0) {
                 Write-Host "Test execution failed for $bin"
                 $failed = 1
               }
+            } elseif ($output -match "no tests found") {
+              Write-Host "Skipping $stem (no test cases defined)"
             } else {
-              Write-Host "Error: compiled test binary not found: $bin"
+              Write-Host "Error: compilation failed or binary not found for $stem"
               $failed = 1
             }
           }
