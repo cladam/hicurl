@@ -9,6 +9,7 @@ import "filter"
 import "json"
 import "auth"
 import "env_loader"
+import "export"
 
 fun main() {
   let spec = make_spec()
@@ -43,15 +44,26 @@ fun main() {
       println("Parsed URL: {resolved_req.url}")
       println("Parsed Method: {resolved_req.method}")
       
-      let resp = execute_request(resolved_req)
-      match req.filter_path {
-        Some(path) => {
-          let filtered = filter_response(resp.status, resp.body, resp.headers, path)
-          println(filtered)
+      match export_val {
+        Some("curl") => {
+          let curl_cmd = export_curl(resolved_req)
+          println(curl_cmd)
+        },
+        Some(unsupported) => {
+          println("(unsupported export: {unsupported})")
         },
         None => {
-          println("Response Body:")
-          println(resp.body)
+          let resp = execute_request(resolved_req)
+          match req.filter_path {
+            Some(path) => {
+              let filtered = filter_response(resp.status, resp.body, resp.headers, path)
+              println(filtered)
+            },
+            None => {
+              println("Response Body:")
+              println(resp.body)
+            }
+          }
         }
       }
     }
