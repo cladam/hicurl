@@ -78,6 +78,11 @@ jobs:
         run: |
           vcpkg install curl:x64-windows
           vcpkg integrate install
+          Copy-Item C:\vcpkg\installed\x64-windows\lib\libcurl.lib C:\v2-curl.lib -ErrorAction SilentlyContinue
+          Copy-Item C:\vcpkg\installed\x64-windows\lib\libcurl.lib C:\vcpkg\installed\x64-windows\lib\curl.lib -Force
+          "C:\vcpkg\installed\x64-windows\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
+          "INCLUDE=C:\vcpkg\installed\x64-windows\include" | Out-File -Append -FilePath $env:GITHUB_ENV
+          "LIB=C:\vcpkg\installed\x64-windows\lib" | Out-File -Append -FilePath $env:GITHUB_ENV
 
       - name: Adjust hica.hml for Linux
         if: runner.os == 'Linux'
@@ -91,9 +96,10 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          (Get-Content hica.hml) -replace '--ccincdir=/opt/homebrew/include', '--ccincdir=C:/vcpkg/installed/x64-windows/include' -replace '--cclinkopts=-L/opt/homebrew/lib', '--cclinkopts=/LIBPATH:C:/vcpkg/installed/x64-windows/lib' | Set-Content hica.hml
+          (Get-Content hica.hml) -replace '--ccincdir=/opt/homebrew/include', '' -replace '--cclinkopts=-L/opt/homebrew/lib', '' | Set-Content hica.hml
 
       - name: Build binary
+        shell: bash
         run: |
           mkdir -p "$HOME/.hica/stdlib"
           hica fetch
