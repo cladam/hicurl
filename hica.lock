@@ -9,3 +9,8 @@ source = "registry+pkg.hica.dev@latest"
 name = "http"
 version = "latest"
 source = "registry+pkg.hica.dev@latest"
+
+[[package]]
+name = "base64"
+version = "latest"
+source = "registry+pkg.hica.dev@latest"

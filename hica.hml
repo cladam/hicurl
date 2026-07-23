@@ -8,6 +8,7 @@
 @dependencies {
     json: "latest"
     http: "latest"
+    base64: "latest"
 }
 
 @koka {
