@@ -32,10 +32,9 @@ pub fun export_curl(req: RequestSpec) : string {
   let parts_with_body = if length(req.json_fields) > 0 {
     let fields = map(req.json_fields, (f) => {
       if f.is_raw {
-        "\\\"" + f.name + "\\\": " + f.content
+        "\"" + f.name + "\": " + f.content
       } else {
-        // Simple escape of double quotes inside single quoted curl body
-        "\\\"" + f.name + "\\\": \\\"" + f.content + "\\\""
+        "\"" + f.name + "\": \"" + f.content + "\""
       }
     })
     let body_str = "\{" + join(fields, ", ") + "\}"

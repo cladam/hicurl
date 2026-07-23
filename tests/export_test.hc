@@ -26,9 +26,9 @@ test "export POST curl with JSON body" {
   }
   
   let res = export_curl(req)
-  // curl -X POST -H "X-Client: hicurl" -H "Content-Type: application/json" -d '{\"name\": \"Alice\"}' "https://httpbin.org/post"
+  // curl -X POST -H "X-Client: hicurl" -H "Content-Type: application/json" -d '{"name": "Alice"}' "https://httpbin.org/post"
   assert(contains(res, "-X POST"))
   assert(contains(res, "-H \"X-Client: hicurl\""))
   assert(contains(res, "-H \"Content-Type: application/json\""))
-  assert(contains(res, "-d '\{\\\"name\\\": \\\"Alice\\\"\}'"))
+  assert(contains(res, "-d '\{\"name\": \"Alice\"\}'"))
 }
