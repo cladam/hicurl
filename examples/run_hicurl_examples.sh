@@ -41,4 +41,19 @@ echo "Command: ../hicurl get https://httpbin.org/status/503 .some.field"
 RESULT=$(../hicurl get https://httpbin.org/status/503 .some.field)
 echo "Output: $RESULT"
 
+echo -e "\nGET request using Environment Base URL resolution (.hicurl.env)"
+echo "Command: ../hicurl -e staging get /posts/1 .title"
+RESULT=$(../hicurl -e staging get /posts/1 .title)
+echo "Output: $RESULT"
+
+echo -e "\nGET request with Bearer Auth Header Sugar"
+echo "Command: ../hicurl -A bearer:super-secret-token get https://httpbin.org/headers .headers.Authorization"
+RESULT=$(../hicurl -A bearer:super-secret-token get https://httpbin.org/headers .headers.Authorization)
+echo "Output: $RESULT"
+
+echo -e "\nGET request with Basic Auth Header Sugar (Auto-Base64 encoded)"
+echo "Command: ../hicurl -A basic:my_user:secret get https://httpbin.org/headers .headers.Authorization"
+RESULT=$(../hicurl -A basic:my_user:secret get https://httpbin.org/headers .headers.Authorization)
+echo "Output: $RESULT"
+
 echo -e "\nAll examples ran successfully!"

@@ -9,6 +9,8 @@ A modern HTTP CLI built in Hica with a rich feature set and intuitive syntax sug
 - **Automatic Method & URL Routing**: Correctly infers implicit `GET` or explicit methods (`post`, `put`, `delete`, etc.) and handles positional routing.
 - **HTTP Execution**: Fully integrated HTTP client engine utilizing `libcurl` via Koka FFI to execute GET, POST, and other HTTP requests with the parsed headers, query parameters, and custom JSON bodies.
 - **Response Filtering**: Rich response filters supporting Status Codes (`:status`), Raw Headers (`:headers`), case-insensitive specific header values (`:header.Header-Name`), and nested JSON dot-path navigation including array indexing (e.g. `.path.to.field` or `.[0].name`).
+- **Auth Sugar Injection**: Seamless authentication configuration via `-A` / `--auth` supporting Bearer token headers (`-A bearer:TOKEN`) and auto-Base64 encoded Basic auth (`-A basic:user:pass`).
+- **Environment Base URL Resolution**: Dynamically reads environment mapping from `.hicurl.env` (via `-e` / `--env`), automatically prepending the selected base URL if the requested path is relative.
 
 ## Syntax Examples (Currently Parsed)
 
@@ -21,20 +23,41 @@ hicurl post /users name="Alice" role="admin" age:=28 X-Client-ID:12345
 
 # GET with query params and response filter
 hicurl get /search query=="hica lang" limit==10 .results
+
+# Bearer Token Auth
+hicurl /v1/me -A bearer:super-secret-token
+
+# Auto-Base64 Basic Auth
+hicurl /v1/me -A basic:my_user:secret
+
+# Environment Base URL Resolution (loads base URL from .hicurl.env)
+hicurl /posts/1 -e staging
 ```
 
 ## Running Tests
 
-To run the parser test suite:
+To run the full test suite:
 
 ```sh
-../hica-ecosystem/hica/hica test tests/parser_test.hc
+# Parser test suite
+hica test tests/parser_test.hc
+
+# Response filter test suite
+hica test tests/filter_test.hc
+
+# Auth injection test suite
+hica test tests/auth_test.hc
+
+# Environment loader test suite
+hica test tests/env_test.hc
 ```
 
-To run the response filter test suite:
+## Running Examples
+
+To execute the examples shell script using the compiled binary:
 
 ```sh
-../hica-ecosystem/hica/hica test tests/filter_test.hc
+./examples/run_hicurl_examples.sh
 ```
 
 ## Toolchain Development commands

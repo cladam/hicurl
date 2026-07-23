@@ -7,6 +7,8 @@ import "request"
 import "http_exec"
 import "filter"
 import "json"
+import "auth"
+import "env_loader"
 
 fun main() {
   let spec = make_spec()
@@ -27,10 +29,21 @@ fun main() {
       println("positionals: {show(pos)}")
       
       let req = parse_items(pos)
-      println("Parsed URL: {req.url}")
-      println("Parsed Method: {req.method}")
+      let resolved_url = resolve_url(req.url, env)
+      let resolved_headers = inject_auth(req.headers, auth)
+      let resolved_req = RequestSpec {
+        url: resolved_url,
+        method: req.method,
+        headers: resolved_headers,
+        queries: req.queries,
+        json_fields: req.json_fields,
+        filter_path: req.filter_path
+      }
       
-      let resp = execute_request(req)
+      println("Parsed URL: {resolved_req.url}")
+      println("Parsed Method: {resolved_req.method}")
+      
+      let resp = execute_request(resolved_req)
       match req.filter_path {
         Some(path) => {
           let filtered = filter_response(resp.status, resp.body, resp.headers, path)
