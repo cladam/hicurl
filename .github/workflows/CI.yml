@@ -110,20 +110,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # 1. Create COMSPEC wrapper to convert system("./...") calls to system(".\...")
-          @'
-          @echo off
-          set "ARGS=%*"
-          if /i "%ARGS:~0,3%"=="/c " set "ARGS=%ARGS:~3%"
-          set "ARGS=%ARGS:/=\%"
-          C:\Windows\System32\cmd.exe /c %ARGS%
-          '@ | Out-File -Encoding ascii -FilePath "C:\Windows\comspec_wrapper.bat"
-
-          # Export COMSPEC for current step and subsequent workflow steps
-          $env:COMSPEC = "C:\Windows\comspec_wrapper.bat"
-          "COMSPEC=C:\Windows\comspec_wrapper.bat" | Out-File -Append -FilePath $env:GITHUB_ENV
-
-          # 2. Create helper wrappers for curl and tar to strip single quotes
+          # 1. Create helper wrappers in C:\Windows\ to strip single-quotes from curl/tar calls
           @'
           @echo off
           set "ARGS=%*"
@@ -138,7 +125,15 @@ jobs:
           C:\Windows\System32\tar.exe %ARGS%
           '@ | Out-File -Encoding ascii -FilePath "C:\Windows\tar.cmd"
 
-          # 3. Pre-download dependencies
+          @'
+          @echo off
+          set "ARGS=%*"
+          set "ARGS=%ARGS:/=\%"
+          if "%ARGS:~0,1%"=="\" set "ARGS=%ARGS:~1%"
+          %ARGS%
+          '@ | Out-File -Encoding ascii -FilePath "C:\Windows\.cmd"
+
+          # 2. Pre-download dependencies with --strip-components=1
           $hicaPkg = "$env:USERPROFILE\.hica\pkg"
           New-Item -ItemType Directory -Force -Path "$hicaPkg\json\1.0.0", "$hicaPkg\http\1.2.0", "$env:USERPROFILE\.hica\stdlib"
 
@@ -148,11 +143,11 @@ jobs:
           curl.exe -sSL "https://pkg.hica.dev/http/http-1.2.0.tar.gz" -o "$env:TEMP\http.tar.gz"
           tar.exe -xzf "$env:TEMP\http.tar.gz" -C "$hicaPkg\http\1.2.0" --strip-components=1
 
-          # Copy module files to both src/ and tests/ so imports resolve cleanly
-          Get-ChildItem -Path "$hicaPkg" -Recurse -Filter "*.hc" | Copy-Item -Destination "src\" -Force
-          Get-ChildItem -Path "$hicaPkg" -Recurse -Filter "*.hc" | Copy-Item -Destination "tests\" -Force
+          # Copy package source files to src/ and tests/ so imports resolve cleanly
+          Get-ChildItem -Path "$hicaPkg" -Recurse | Where-Object { $_.Extension -in '.hc', '.kk' } | Copy-Item -Destination "src\" -Force
+          Get-ChildItem -Path "$hicaPkg" -Recurse | Where-Object { $_.Extension -in '.hc', '.kk' } | Copy-Item -Destination "tests\" -Force
 
-          # 4. Build project binary
+          # 3. Build project binary
           hica fetch
           hica build -o hicurl
 
