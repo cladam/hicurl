@@ -96,7 +96,7 @@ jobs:
       - name: Build binary
         run: |
           hica fetch
-          hica build
+          hica build -o hicurl
 
       - name: Run unit tests (Unix)
         if: runner.os != 'Windows'
