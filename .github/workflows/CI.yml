@@ -110,7 +110,23 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # 1. Create helper wrappers in C:\Windows\ to strip single-quotes from curl/tar calls
+          # Create C:\bin directory for wrappers
+          New-Item -ItemType Directory -Force -Path "C:\bin"
+
+          # Persist C:\bin to GITHUB_PATH and prioritize .CMD in PATHEXT across ALL steps
+          "C:\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
+          "PATHEXT=.CMD;.BAT;.EXE;.COM" | Out-File -Append -FilePath $env:GITHUB_ENV
+
+          # Wrapper for system("./...") calls executed by hica test
+          @'
+          @echo off
+          set "ARGS=%*"
+          set "ARGS=%ARGS:/=\%"
+          if "%ARGS:~0,1%"=="\" set "ARGS=%ARGS:~1%"
+          %ARGS%
+          '@ | Out-File -Encoding ascii -FilePath "C:\bin\.cmd"
+
+          # Create helper wrappers in C:\Windows\ to strip single-quotes from curl/tar calls
           @'
           @echo off
           set "ARGS=%*"
@@ -133,7 +149,7 @@ jobs:
           %ARGS%
           '@ | Out-File -Encoding ascii -FilePath "C:\Windows\.cmd"
 
-          # 2. Pre-download dependencies with --strip-components=1
+          # Pre-download dependencies with --strip-components=1
           $hicaPkg = "$env:USERPROFILE\.hica\pkg"
           New-Item -ItemType Directory -Force -Path "$hicaPkg\json\1.0.0", "$hicaPkg\http\1.2.0", "$env:USERPROFILE\.hica\stdlib"
 
@@ -147,7 +163,7 @@ jobs:
           Get-ChildItem -Path "$hicaPkg" -Recurse | Where-Object { $_.Extension -in '.hc', '.kk' } | Copy-Item -Destination "src\" -Force
           Get-ChildItem -Path "$hicaPkg" -Recurse | Where-Object { $_.Extension -in '.hc', '.kk' } | Copy-Item -Destination "tests\" -Force
 
-          # 3. Build project binary
+          # Build project binary
           hica fetch
           hica build -o hicurl
 
