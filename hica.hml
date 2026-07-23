@@ -11,7 +11,7 @@
 }
 
 @koka {
-    flags: "--cclib=curl --ccincdir=/opt/homebrew/include --cclinkopts=-L/opt/homebrew/lib"
+    flags: "-r --cclib=curl --ccincdir=/opt/homebrew/include --cclinkopts=-L/opt/homebrew/lib"
 }
 
 @description {
