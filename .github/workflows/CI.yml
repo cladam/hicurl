@@ -96,12 +96,23 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          (Get-Content hica.hml) -replace '--ccincdir=/opt/homebrew/include', '--ccincdir=C:/vcpkg/installed/x64-windows/include' -replace '--cclinkopts=-L/opt/homebrew/lib', '--cclinkopts=-LC:/vcpkg/installed/x64-windows/lib' | Set-Content hica.hml
+          (Get-Content hica.hml)
+            -replace '--ccincdir=/opt/homebrew/include', '--ccincdir=C:/vcpkg/installed/x64-windows/include'
+            -replace '--cclinkopts=-L/opt/homebrew/lib', '--cclinkopts=-LIBPATH:C:/vcpkg/installed/x64-windows/lib' | Set-Content hica.hml
 
-      - name: Build binary
+      - name: Build binary (Linux/MacOS)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           mkdir -p "$HOME/.hica/stdlib"
+          hica fetch
+          hica build -o hicurl
+
+      - name: Build binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.hica\stdlib"
           hica fetch
           hica build -o hicurl
 
