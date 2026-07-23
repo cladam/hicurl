@@ -9,6 +9,7 @@ docs/the-plan.md
 
 src/*
 !src/*.hc
+!src/http_ffi.kk
 
 tests/*
 !tests/*.hc
