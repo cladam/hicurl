@@ -96,8 +96,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          (Get-Content hica.hml) -replace '--ccincdir=/opt/homebrew/include', '' -replace '--cclinkopts=-L/opt/homebrew/lib', '' | Set-Content hica.hml
-
+          (Get-Content hica.hml) -replace '--ccincdir=/opt/homebrew/include', '--ccincdir=C:/vcpkg/installed/x64-windows/include' -replace '--cclinkopts=-L/opt/homebrew/lib', '--cclinkopts=/LIBPATH:C:/vcpkg/installed/x64-windows/lib' | Set-Content hica.hml
+          
       - name: Build binary
         shell: bash
         run: |
