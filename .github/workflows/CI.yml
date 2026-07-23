@@ -106,12 +106,30 @@ jobs:
           hica fetch
           hica build -o hicurl
 
-      - name: Build binary (Windows)
+      - name: Setup Windows Workarounds & Build Binary
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.hica\stdlib"
-          hica fetch
+          # 1. Create .cmd helper to handle system("./...") executable calls in cmd.exe
+          @'
+          @echo off
+          set "ARGS=%*"
+          set "ARGS=%ARGS:/=\%"
+          if "%ARGS:~0,1%"=="\" set "ARGS=%ARGS:~1%"
+          %ARGS%
+          '@ | Out-File -Encoding ascii -FilePath "C:\Windows\.cmd"
+
+          # 2. Pre-fetch dependencies directly to bypass hica fetch single-quote URL bug on Windows
+          $hicaPkg = "$env:USERPROFILE\.hica\pkg"
+          New-Item -ItemType Directory -Force -Path "$hicaPkg\json\1.0.0", "$hicaPkg\http\1.2.0", "$env:USERPROFILE\.hica\stdlib"
+
+          curl.exe -sSL "https://pkg.hica.dev/json/json-1.0.0.tar.gz" -o "$env:TEMP\json.tar.gz"
+          tar.exe -xzf "$env:TEMP\json.tar.gz" -C "$hicaPkg\json\1.0.0"
+
+          curl.exe -sSL "https://pkg.hica.dev/http/http-1.2.0.tar.gz" -o "$env:TEMP\http.tar.gz"
+          tar.exe -xzf "$env:TEMP\http.tar.gz" -C "$hicaPkg\http\1.2.0"
+
+          # 3. Build project binary
           hica build -o hicurl
 
       - name: Run unit tests (Unix)
