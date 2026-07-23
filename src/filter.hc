@@ -10,17 +10,21 @@ pub fun filter_response(status: int, body: string, headers: string, filter_path:
     let header_name = filter_path[8:]
     unwrap_maybe_or(find_header(headers, header_name), "(header not found)")
   } else if starts_with(filter_path, ".") {
-    // Navigate JSON dot path
-    let parts = filter(split(filter_path, "."), (s) => s != "")
-    match parse_json(body) {
-      Ok(j) => {
-        let matched = navigate_json(Some(j), parts)
-        match matched {
-          Some(res) => format_json_result(res),
-          None => "(field not found)"
-        }
-      },
-      Err(err) => "(invalid JSON response: " + err + ")"
+    if status < 200 || status >= 300 {
+      "(HTTP Error " + show(status) + ")"
+    } else {
+      // Navigate JSON dot path
+      let parts = filter(split(filter_path, "."), (s) => s != "")
+      match parse_json(body) {
+        Ok(j) => {
+          let matched = navigate_json(Some(j), parts)
+          match matched {
+            Some(res) => format_json_result(res),
+            None => "(field not found)"
+          }
+        },
+        Err(err) => "(invalid JSON response: " + err + ")"
+      }
     }
   } else {
     "(unknown filter: " + filter_path + ")"
