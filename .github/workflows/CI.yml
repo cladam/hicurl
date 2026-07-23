@@ -80,9 +80,9 @@ jobs:
           vcpkg integrate install
           Copy-Item C:\vcpkg\installed\x64-windows\lib\libcurl.lib C:\v2-curl.lib -ErrorAction SilentlyContinue
           Copy-Item C:\vcpkg\installed\x64-windows\lib\libcurl.lib C:\vcpkg\installed\x64-windows\lib\curl.lib -Force
+          Copy-Item C:\vcpkg\installed\x64-windows\bin\*.dll . -Force -ErrorAction SilentlyContinue
+          Copy-Item C:\vcpkg\installed\x64-windows\bin\*.dll $env:LOCALAPPDATA\hica\ -Force -ErrorAction SilentlyContinue
           "C:\vcpkg\installed\x64-windows\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
-          "INCLUDE=C:\vcpkg\installed\x64-windows\include" | Out-File -Append -FilePath $env:GITHUB_ENV
-          "LIB=C:\vcpkg\installed\x64-windows\lib" | Out-File -Append -FilePath $env:GITHUB_ENV
 
       - name: Adjust hica.hml for Linux
         if: runner.os == 'Linux'
