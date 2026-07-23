@@ -95,6 +95,7 @@ jobs:
 
       - name: Build binary
         run: |
+          mkdir -p "$HOME/.hica/stdlib"
           hica fetch
           hica build -o hicurl
 
