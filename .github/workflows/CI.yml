@@ -110,7 +110,21 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # 1. Create .cmd helper to handle system("./...") executable calls in cmd.exe
+          # 1. Create helper wrappers in C:\Windows\ to strip single-quotes from curl/tar calls
+          @'
+          @echo off
+          set "ARGS=%*"
+          set "ARGS=%ARGS:'=%"
+          C:\Windows\System32\curl.exe %ARGS%
+          '@ | Out-File -Encoding ascii -FilePath "C:\Windows\curl.cmd"
+
+          @'
+          @echo off
+          set "ARGS=%*"
+          set "ARGS=%ARGS:'=%"
+          C:\Windows\System32\tar.exe %ARGS%
+          '@ | Out-File -Encoding ascii -FilePath "C:\Windows\tar.cmd"
+
           @'
           @echo off
           set "ARGS=%*"
@@ -119,17 +133,21 @@ jobs:
           %ARGS%
           '@ | Out-File -Encoding ascii -FilePath "C:\Windows\.cmd"
 
-          # 2. Pre-fetch dependencies directly to bypass hica fetch single-quote URL bug on Windows
+          # 2. Pre-download dependencies with --strip-components=1
           $hicaPkg = "$env:USERPROFILE\.hica\pkg"
           New-Item -ItemType Directory -Force -Path "$hicaPkg\json\1.0.0", "$hicaPkg\http\1.2.0", "$env:USERPROFILE\.hica\stdlib"
 
           curl.exe -sSL "https://pkg.hica.dev/json/json-1.0.0.tar.gz" -o "$env:TEMP\json.tar.gz"
-          tar.exe -xzf "$env:TEMP\json.tar.gz" -C "$hicaPkg\json\1.0.0"
+          tar.exe -xzf "$env:TEMP\json.tar.gz" -C "$hicaPkg\json\1.0.0" --strip-components=1
 
           curl.exe -sSL "https://pkg.hica.dev/http/http-1.2.0.tar.gz" -o "$env:TEMP\http.tar.gz"
-          tar.exe -xzf "$env:TEMP\http.tar.gz" -C "$hicaPkg\http\1.2.0"
+          tar.exe -xzf "$env:TEMP\http.tar.gz" -C "$hicaPkg\http\1.2.0" --strip-components=1
+
+          # Copy package source files to src/ so imports resolve cleanly
+          Get-ChildItem -Path "$hicaPkg" -Recurse -Filter "*.hc" | Copy-Item -Destination "src\" -Force
 
           # 3. Build project binary
+          hica fetch
           hica build -o hicurl
 
       - name: Run unit tests (Unix)
