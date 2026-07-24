@@ -10,13 +10,26 @@ pub fun parse_items(args: list<string>) : RequestSpec {
   }
 }
 
+pub fun expand_shorthand_url(url: string) : string {
+  if starts_with(url, ":") {
+    let first_char = url[1:2]
+    if first_char == "0" || first_char == "1" || first_char == "2" || first_char == "3" || first_char == "4" || first_char == "5" || first_char == "6" || first_char == "7" || first_char == "8" || first_char == "9" {
+      "http://localhost" + url
+    } else {
+      url
+    }
+  } else {
+    url
+  }
+}
+
 pub fun parse_rest(req: RequestSpec, first_arg: string, rest: list<string>) : RequestSpec {
   let is_method = match to_lower(first_arg) {
     "get" | "post" | "put" | "patch" | "delete" | "head" => true,
     _ => false
   }
 
-  let (method, url, items) = if is_method {
+  let (method, raw_url, items) = if is_method {
     match rest {
       [] => (first_arg, "", []),
       [u, ..more] => (first_arg, u, more)
@@ -24,6 +37,8 @@ pub fun parse_rest(req: RequestSpec, first_arg: string, rest: list<string>) : Re
   } else {
     ("get", first_arg, rest)
   }
+
+  let url = expand_shorthand_url(raw_url)
 
   let base_req = RequestSpec {
     url: url,

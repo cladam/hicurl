@@ -33,6 +33,7 @@ HICURL_INSTALL_DIR=/usr/local/bin hicurl https://github.com/cladam/hicurl/releas
 ## Features
 
 - **Base CLI Parser**: Configured via `std/cli` with options for `--auth` (`-A`), `--env` (`-e`), and `--export` (`-E`).
+- **Localhost URL Shorthand**: Automatically expands positional URL arguments starting with `:` and a digit (e.g. `:8000/v1/health` or `:5000`) into `http://localhost:8000/v1/health` or `http://localhost:5000` to simplify local development workflows.
 - **Flexible Syntax Sugar**: Positionals are dynamically parsed into headers (`:`), query parameters (`==`), JSON string fields (`=`), JSON raw fields (`:=`), and response filters (`.` / `:status` / `:headers`).
 - **Automatic Method & URL Routing**: Correctly infers implicit `GET` or explicit methods (`post`, `put`, `delete`, etc.) and handles positional routing.
 - **HTTP Execution**: Fully integrated HTTP client engine utilising `libcurl` via Koka FFI to execute GET, POST, and other HTTP requests with the parsed headers, query parameters, and custom JSON bodies.
@@ -49,6 +50,9 @@ HICURL_INSTALL_DIR=/usr/local/bin hicurl https://github.com/cladam/hicurl/releas
 ```sh
 # Implicit GET
 hicurl /users
+
+# Localhost URL Shorthand (connects to http://localhost:8000/v1/health)
+hicurl :8000/v1/health :status
 
 # Explicit POST with JSON body and custom Header
 hicurl post /users name="Alicia" role="admin" age:=28 X-Client-ID:12345

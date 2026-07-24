@@ -85,3 +85,28 @@ test "parse filter status" {
   let req = parse_items(args)
   assert(req.filter_path == Some(":status"))
 }
+
+test "parse shorthand localhost URL with port and path" {
+  let args = [":8000/v1/health"]
+  let req = parse_items(args)
+  assert(req.url == "http://localhost:8000/v1/health")
+}
+
+test "parse shorthand localhost URL with port only" {
+  let args = [":5000"]
+  let req = parse_items(args)
+  assert(req.url == "http://localhost:5000")
+}
+
+test "parse shorthand localhost URL with method" {
+  let args = ["post", ":3000/users"]
+  let req = parse_items(args)
+  assert(req.method == "post")
+  assert(req.url == "http://localhost:3000/users")
+}
+
+test "parse colon prefix that is not a port" {
+  let args = [":invalid"]
+  let req = parse_items(args)
+  assert(req.url == ":invalid")
+}
