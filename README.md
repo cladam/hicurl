@@ -2,6 +2,20 @@
 
 A modern HTTP CLI built in [hica](https://www.hica.dev) with a rich feature set and intuitive syntax sugar.
 
+## Install
+
+```sh
+curl -fsSL https://github.com/cladam/hicurl/releases/latest/download/install.sh | sh
+```
+
+This downloads the pre-built binary for your platform (`macos-arm64`, `linux-arm64` and `linux-x86_64`) and installs it to `~/.local/bin`. Override the install directory with `HICURL_INSTALL_DIR`:
+
+```sh
+HICURL_INSTALL_DIR=/usr/local/bin curl -fsSL https://github.com/cladam/hicurl/releases/latest/download/install.sh | sh
+```
+
+**Note:** _No Windows installer yet_
+
 ## Completed Features
 
 - **Base CLI Parser**: Configured via `std/cli` with options for `--auth` (`-A`), `--env` (`-e`), and `--export` (`-E`).
