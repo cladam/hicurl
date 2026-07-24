@@ -39,8 +39,7 @@ pub fun parse_rest(req: RequestSpec, first_arg: string, rest: list<string>) : Re
 
 pub fun parse_single_item(req: RequestSpec, item: string) : RequestSpec =>
   if starts_with(item, ".") || starts_with(item, ":") {
-    // For now, let's assume it's a filter if it's exact ":status" or ":headers"
-    if item == ":status" || item == ":headers" || starts_with(item, ".") || starts_with(item, ":header.") {
+    if item == ":status" || item == ":headers" || item == ":time" || item == ":time.dns" || item == ":time.connect" || item == ":time.ttfb" || item == ":cookie" || item == ":cookies" || starts_with(item, ":cookie.") || starts_with(item, ".") || starts_with(item, ":header.") {
       RequestSpec { url: req.url, method: req.method, headers: req.headers, queries: req.queries, json_fields: req.json_fields, filter_path: Some(item) }
     } else {
       parse_operator(req, item)
