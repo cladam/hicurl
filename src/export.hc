@@ -18,7 +18,11 @@ pub fun export_curl(req: RequestSpec) : string {
 
   // 3. Add Content-Type header if JSON fields are present
   let parts_with_ct = if length(req.json_fields) > 0 {
-    parts_with_headers + ["-H \"Content-Type: application/json\""]
+    if req.is_form {
+      parts_with_headers + ["-H \"Content-Type: application/x-www-form-urlencoded\""]
+    } else {
+      parts_with_headers + ["-H \"Content-Type: application/json\""]
+    }
   } else {
     parts_with_headers
   }
@@ -28,17 +32,23 @@ pub fun export_curl(req: RequestSpec) : string {
     acc + ["--url-query \"" + q.name + "=" + q.content + "\""]
   )
 
-  // 5. Add JSON body if present
+  // 5. Add JSON/form body if present
   let parts_with_body = if length(req.json_fields) > 0 {
-    let fields = map(req.json_fields, (f) => {
-      if f.is_raw {
-        "\"" + f.name + "\": " + f.content
-      } else {
-        "\"" + f.name + "\": \"" + f.content + "\""
-      }
-    })
-    let body_str = "\{" + join(fields, ", ") + "\}"
-    parts_with_queries + ["-d '" + body_str + "'"]
+    if req.is_form {
+      let fields = map(req.json_fields, (f) => f.name + "=" + f.content)
+      let body_str = join(fields, "&")
+      parts_with_queries + ["-d \"" + body_str + "\""]
+    } else {
+      let fields = map(req.json_fields, (f) => {
+        if f.is_raw {
+          "\"" + f.name + "\": " + f.content
+        } else {
+          "\"" + f.name + "\": \"" + f.content + "\""
+        }
+      })
+      let body_str = "\{" + join(fields, ", ") + "\}"
+      parts_with_queries + ["-d '" + body_str + "'"]
+    }
   } else {
     parts_with_queries
   }

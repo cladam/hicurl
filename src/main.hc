@@ -24,6 +24,7 @@ fun main() {
     CliError(msg) => eprintln("error: {msg}"),
     Parsed(r)     => {
       let verbose = has_flag(r, "verbose")
+      let is_form = has_flag(r, "form")
       if verbose {
         println("Verbose mode is ON")
         println("CLI Parsed successfully!")
@@ -50,7 +51,8 @@ fun main() {
         headers: resolved_headers,
         queries: req.queries,
         json_fields: req.json_fields,
-        filter_path: req.filter_path
+        filter_path: req.filter_path,
+        is_form: is_form
       }
       
       if verbose {

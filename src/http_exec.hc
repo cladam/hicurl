@@ -12,10 +12,20 @@ pub fun execute_request(req: RequestSpec) {
   }
 
   // Next, build headers.
-  let content_type_header = if length(req.json_fields) > 0 {
-    "Content-Type: application/json"
+  let content_type = if length(req.json_fields) > 0 {
+    if req.is_form {
+      "application/x-www-form-urlencoded"
+    } else {
+      "application/json"
+    }
   } else {
     ""
+  }
+
+  let content_type_header = if content_type == "" {
+    ""
+  } else {
+    "Content-Type: " + content_type
   }
   
   let custom_headers = map(req.headers, (h) => h.name + ": " + h.content)
@@ -26,22 +36,21 @@ pub fun execute_request(req: RequestSpec) {
   }
   let headers_str = join(all_headers, "\n")
 
-  // Next, build JSON body manually (flat key-values) to avoid any JSON dependency bugs
+  // Next, build body manually
   let body_str = if length(req.json_fields) > 0 {
-    let fields = map(req.json_fields, (f) => {
-      if f.is_raw {
-        "\"" + f.name + "\": " + f.content
-      } else {
-        "\"" + f.name + "\": \"" + f.content + "\""
-      }
-    })
-    "\{" + join(fields, ", ") + "\}"
-  } else {
-    ""
-  }
-
-  let content_type = if length(req.json_fields) > 0 {
-    "application/json"
+    if req.is_form {
+      let fields = map(req.json_fields, (f) => f.name + "=" + f.content)
+      join(fields, "&")
+    } else {
+      let fields = map(req.json_fields, (f) => {
+        if f.is_raw {
+          "\"" + f.name + "\": " + f.content
+        } else {
+          "\"" + f.name + "\": \"" + f.content + "\""
+        }
+      })
+      "\{" + join(fields, ", ") + "\}"
+    }
   } else {
     ""
   }
