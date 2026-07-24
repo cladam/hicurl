@@ -1,6 +1,6 @@
 @project {
     name: "hicurl"
-    version: "0.6.0"
+    version: "0.6.1"
     license: "MIT"
     entry: "src/main.hc"
 }
