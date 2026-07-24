@@ -1,7 +1,7 @@
 import "std/cli"
 
 pub fun make_spec() =>
-  cli("hicurl", "0.6.2", "hicurl - a modern HTTP CLI")
+  cli("hicurl", "0.7.0", "hicurl - a modern HTTP CLI")
     |> flag("verbose", "v", "Enable verbose output")
     |> flag("form", "f", "Serialize data items as form values")
     |> option("auth", "A", "Quick auth sugar (bearer, basic)")
