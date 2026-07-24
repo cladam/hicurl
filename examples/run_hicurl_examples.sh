@@ -80,4 +80,14 @@ echo "Command: ./hicurl -A basic:my_user:secret get https://httpbun.com/headers 
 RESULT=$(./hicurl -A basic:my_user:secret get https://httpbun.com/headers .headers.Authorization)
 echo "Output: $RESULT"
 
+echo -e "\nPOST request embedding file contents as a JSON string field"
+echo "Command: ./hicurl post https://httpbun.com/post bio=@tests/test_text.txt .data"
+RESULT=$(./hicurl post https://httpbun.com/post bio=@tests/test_text.txt .data)
+echo "Output: $RESULT"
+
+echo -e "\nPOST request embedding file contents as a parsed JSON field"
+echo "Command: ./hicurl post https://httpbun.com/post user:=@tests/test_data.json .json.user.name"
+RESULT=$(./hicurl post https://httpbun.com/post user:=@tests/test_data.json .json.user.name)
+echo "Output: $RESULT"
+
 echo -e "\nAll examples ran successfully!"

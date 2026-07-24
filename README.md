@@ -35,7 +35,7 @@ HICURL_INSTALL_DIR=/usr/local/bin hicurl https://github.com/cladam/hicurl/releas
 - **Base CLI Parser**: Configured via `std/cli` with options for `--auth` (`-A`), `--env` (`-e`), `--export` (`-E`), and `--form` (`-f`).
 - **Form Encoding Toggle (-f / --form)**: By default, `hicurl` assumes `application/json` when payload items (`=` or `:=`) are provided. The `-f` flag toggles this to serialize payload items as `application/x-www-form-urlencoded` form data.
 - **Localhost URL Shorthand**: Automatically expands positional URL arguments starting with `:` and a digit (e.g. `:8000/v1/health` or `:5000`) into `http://localhost:8000/v1/health` or `http://localhost:5000` to simplify local development workflows.
-- **Flexible Syntax Sugar**: Positionals are dynamically parsed into headers (`:`), query parameters (`==`), JSON string fields (`=`), JSON raw fields (`:=`), and response filters (`.` / `:status` / `:headers`).
+- **Flexible Syntax Sugar**: Positionals are dynamically parsed into headers (`:`), query parameters (`==`), JSON string fields (`=`), JSON raw fields (`:=`), string field from file (`=@`), raw JSON field from file (`:=@`), and response filters (`.` / `:status` / `:headers`).
 - **Automatic Method & URL Routing**: Correctly infers implicit `GET` or explicit methods (`post`, `put`, `delete`, etc.) and handles positional routing.
 - **HTTP Execution**: Fully integrated HTTP client engine utilising `libcurl` via Koka FFI to execute GET, POST, and other HTTP requests with the parsed headers, query parameters, and custom JSON bodies.
 - **Response Filtering**: Rich response filters supporting Status Codes (`:status`), Raw Headers (`:headers`), case-insensitive specific header values (`:header.Header-Name`), and nested JSON dot-path navigation including array indexing (e.g. `.path.to.field` or `.[0].name`).
@@ -81,6 +81,12 @@ hicurl post /api/login username=claes password=secret :cookie.session_id
 
 # Form-encoded POST payload (sends name=Alicia&age=30 instead of JSON)
 hicurl post /oauth/token name="Alicia" age:=30 -f
+
+# POST request embedding file contents as a JSON string field
+hicurl post /post bio=@tests/test_text.txt
+
+# POST request embedding file contents as a parsed JSON field (directly embedded parsed JSON structure)
+hicurl post /post user:=@tests/test_data.json
 ```
 
 ## Running Tests
