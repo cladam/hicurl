@@ -4,14 +4,28 @@ A modern HTTP CLI built in [hica](https://www.hica.dev) with a rich feature set 
 
 ## Install
 
+Using regular `curl`:
 ```sh
 curl -fsSL https://github.com/cladam/hicurl/releases/latest/download/install.sh | sh
 ```
+
+Using `hicurl`:
+```sh
+hicurl https://github.com/cladam/hicurl/releases/latest/download/install.sh | sh
+```
+
+#### ### Why this works:
+
+1. **Implicit GET**: Passing a URL without an explicit method defaults to a `GET` request.
+2. **Auto-redirects**: The underlying `libcurl` implementation in **hicurl** automatically follows location redirects (the equivalent of `-L` in curl).
+3. **Piping & TTY detection**: When piped to `sh`, **hicurl** detects that stdout is not a TTY (terminal), so it prints the raw shell script directly to the pipeline without any ANSI colors or JSON formatting, making it perfectly clean for the shell to execute.
 
 This downloads the pre-built binary for your platform (`macos-arm64`, `linux-arm64` and `linux-x86_64`) and installs it to `~/.local/bin`. Override the install directory with `HICURL_INSTALL_DIR`:
 
 ```sh
 HICURL_INSTALL_DIR=/usr/local/bin curl -fsSL https://github.com/cladam/hicurl/releases/latest/download/install.sh | sh
+# Or with hicurl
+HICURL_INSTALL_DIR=/usr/local/bin hicurl https://github.com/cladam/hicurl/releases/latest/download/install.sh | sh
 ```
 
 **Note:** _No Windows installer yet_
