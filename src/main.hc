@@ -16,7 +16,7 @@ extern import "http_ffi"
 fun main() {
   let spec = make_spec()
   match cli_parse(spec) {
-    Help          => println(cli_help(spec)),
+    Help          => println(cli_help_extended(spec)),
     Version       => {
       println(cli_version_str(spec))
       println(hicurl_version())
