@@ -20,16 +20,23 @@ fun main() {
     Version       => println(cli_version_str(spec)),
     CliError(msg) => eprintln("error: {msg}"),
     Parsed(r)     => {
-      println("CLI Parsed successfully!")
+      let verbose = has_flag(r, "verbose")
+      if verbose {
+        println("Verbose mode is ON")
+        println("CLI Parsed successfully!")
+      }
+
       let env = get_opt(r, "env")
       let auth = get_opt(r, "auth")
       let export_val = get_opt(r, "export")
       let pos = get_positionals(r)
       
-      println("env: {show(env)}")
-      println("auth: {show(auth)}")
-      println("export: {show(export_val)}")
-      println("positionals: {show(pos)}")
+      if verbose {
+        println("env: {show(env)}")
+        println("auth: {show(auth)}")
+        println("export: {show(export_val)}")
+        println("positionals: {show(pos)}")
+      }
       
       let req = parse_items(pos)
       let resolved_url = resolve_url(req.url, env)
@@ -43,8 +50,10 @@ fun main() {
         filter_path: req.filter_path
       }
       
-      println("Parsed URL: {resolved_req.url}")
-      println("Parsed Method: {resolved_req.method}")
+      if verbose {
+        println("Parsed URL: {resolved_req.url}")
+        println("Parsed Method: {resolved_req.method}")
+      }
       
       match export_val {
         Some("curl") => {
@@ -62,7 +71,9 @@ fun main() {
               print_response_body(filtered)
             },
             None => {
-              println("Response Body:")
+              if verbose {
+                println("Response Body:")
+              }
               print_response_body(resp.body)
             }
           }
