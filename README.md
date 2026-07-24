@@ -1,6 +1,6 @@
 # hicurl
 
-A modern HTTP CLI built in [hica](https://www.hica.dev) with a rich feature set and intuitive syntax sugar.
+A modern HTTP CLI built in [hica](https://www.hica.dev). Heavily inspired by the human-friendly ergonomics of HTTPie and Curlie, but powered by native C execution speed, built-in JSON/header filtering, and environment-aware routing.
 
 ## Install
 
