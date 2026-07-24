@@ -12,6 +12,8 @@ A modern HTTP CLI built in [hica](https://www.hica.dev) with a rich feature set 
 - **Auth Sugar Injection**: Seamless authentication configuration via `-A` / `--auth` supporting Bearer token headers (`-A bearer:TOKEN`) and auto-Base64 encoded Basic auth (`-A basic:user:pass`).
 - **Environment Base URL Resolution**: Dynamically reads environment mapping from `.hicurl.env` (via `-e` / `--env`), automatically prepending the selected base URL if the requested path is relative. Supports fallbacks to locate `.hicurl.env` from either the current directory or parent directories.
 - **Code Export Mode (curl)**: Export parsed queries, headers, and JSON bodies to a fully-escaped, standard `curl` command using `-E curl` / `--export curl`. Leverages the modern `--url-query` parameter for robust query parameter formatting, bypassing HTTP execution when active.
+- **Response Timing Diagnostics**: Seamless measurement of request execution times right from `libcurl`. Supports `:time` (formatted as ms or seconds, e.g. `142ms`, `1.84s`), plus granular breakdowns: `:time.dns` (DNS lookup), `:time.connect` (TCP connection), and `:time.ttfb` (Time To First Byte).
+- **Cookie Inspection**: Clean extraction of authentication & session state from response headers. Supports `:cookie` / `:cookies` (to list all received cookies) and targeted extraction via `:cookie.CookieName` (e.g. `:cookie.session_id`) returning raw, unquoted values for scripting convenience.
 
 ## Syntax Examples (Currently Parsed)
 
@@ -36,6 +38,12 @@ hicurl /posts/1 -e staging
 
 # Export to curl format
 hicurl post /users name="Sara" age:=52 -E curl
+
+# Measure response time and latency breakdowns
+hicurl get /heavy-query :time :time.dns :time.ttfb
+
+# Cookie extraction
+hicurl post /api/login username=claes password=secret :cookie.session_id
 ```
 
 ## Running Tests
