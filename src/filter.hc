@@ -108,7 +108,15 @@ pub fun navigate_json(j: maybe<Json>, path_parts: list<string>) : maybe<Json> =>
         None => None
       }
     } else {
-      at(j, p)
+      match parse_int(p) {
+        Some(idx) => {
+          match nth(j, idx) {
+            Some(res) => Some(res),
+            None => at(j, p)
+          }
+        },
+        None => at(j, p)
+      }
     }
     navigate_json(next_j, rest)
   }

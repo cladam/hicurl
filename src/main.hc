@@ -102,24 +102,32 @@ fun main() {
 pub fun pretty_colorize_json(j: Json, indent: int) : string {
   match j {
     JObject(fields) => {
-      let pad = make_indent(indent)
-      let inner_pad = make_indent(indent + 1)
-      let field_strings = map(fields, (f) => {
-        let key_str = cyan("\"" + escape_string(f.0) + "\"")
-        let val_str = pretty_colorize_json_no_pad(f.1, indent + 1)
-        inner_pad + key_str + ": " + val_str
-      })
-      let inner = join(field_strings, ",\n")
-      "\{" + "\n" + inner + "\n" + pad + "\}"
+      if length(fields) == 0 {
+        "\{\}"
+      } else {
+        let pad = make_indent(indent)
+        let inner_pad = make_indent(indent + 1)
+        let field_strings = map(fields, (f) => {
+          let key_str = cyan("\"" + escape_string(f.0) + "\"")
+          let val_str = pretty_colorize_json_no_pad(f.1, indent + 1)
+          inner_pad + key_str + ": " + val_str
+        })
+        let inner = join(field_strings, ",\n")
+        "\{" + "\n" + inner + "\n" + pad + "\}"
+      }
     },
     JArray(items) => {
-      let pad = make_indent(indent)
-      let inner_pad = make_indent(indent + 1)
-      let item_strings = map(items, (i) => {
-        inner_pad + pretty_colorize_json_no_pad(i, indent + 1)
-      })
-      let inner = join(item_strings, ",\n")
-      "[\n" + inner + "\n" + pad + "]"
+      if length(items) == 0 {
+        "[]"
+      } else {
+        let pad = make_indent(indent)
+        let inner_pad = make_indent(indent + 1)
+        let item_strings = map(items, (i) => {
+          inner_pad + pretty_colorize_json_no_pad(i, indent + 1)
+        })
+        let inner = join(item_strings, ",\n")
+        "[\n" + inner + "\n" + pad + "]"
+      }
     },
     _ => pretty_colorize_json_no_pad(j, indent)
   }

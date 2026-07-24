@@ -71,3 +71,15 @@ test "filter headers stripping internal telemetry" {
   let res = filter_response(200, "", hdrs, ":headers")
   assert(res == "Content-Type: text/plain\n")
 }
+
+test "filter json array bracket index" {
+  let body = "\{\"items\": [\{\"language\": \"Rust\"\}, \{\"language\": \"Go\"\}]\}"
+  let res = filter_response(200, body, "", ".items.[0].language")
+  assert(res == "Rust")
+}
+
+test "filter json array dot-separated integer index" {
+  let body = "\{\"items\": [\{\"language\": \"Rust\"\}, \{\"language\": \"Go\"\}]\}"
+  let res = filter_response(200, body, "", ".items.1.language")
+  assert(res == "Go")
+}
