@@ -14,6 +14,8 @@ src/*
 
 tests/*
 !tests/*.hc
+!tests/*.txt
+!tests/*.json
 
 examples/*
 !examples/*.hc
