@@ -1,6 +1,6 @@
 # hicurl
 
-A modern HTTP CLI built in Hica with a rich feature set and intuitive syntax sugar.
+A modern HTTP CLI built in [hica](https://www.hica.dev) with a rich feature set and intuitive syntax sugar.
 
 ## Completed Features
 
@@ -10,7 +10,8 @@ A modern HTTP CLI built in Hica with a rich feature set and intuitive syntax sug
 - **HTTP Execution**: Fully integrated HTTP client engine utilizing `libcurl` via Koka FFI to execute GET, POST, and other HTTP requests with the parsed headers, query parameters, and custom JSON bodies.
 - **Response Filtering**: Rich response filters supporting Status Codes (`:status`), Raw Headers (`:headers`), case-insensitive specific header values (`:header.Header-Name`), and nested JSON dot-path navigation including array indexing (e.g. `.path.to.field` or `.[0].name`).
 - **Auth Sugar Injection**: Seamless authentication configuration via `-A` / `--auth` supporting Bearer token headers (`-A bearer:TOKEN`) and auto-Base64 encoded Basic auth (`-A basic:user:pass`).
-- **Environment Base URL Resolution**: Dynamically reads environment mapping from `.hicurl.env` (via `-e` / `--env`), automatically prepending the selected base URL if the requested path is relative.
+- **Environment Base URL Resolution**: Dynamically reads environment mapping from `.hicurl.env` (via `-e` / `--env`), automatically prepending the selected base URL if the requested path is relative. Supports fallbacks to locate `.hicurl.env` from either the current directory or parent directories.
+- **Code Export Mode (curl)**: Export parsed queries, headers, and JSON bodies to a fully-escaped, standard `curl` command using `-E curl` / `--export curl`. Leverages the modern `--url-query` parameter for robust query parameter formatting, bypassing HTTP execution when active.
 
 ## Syntax Examples (Currently Parsed)
 
@@ -19,7 +20,7 @@ A modern HTTP CLI built in Hica with a rich feature set and intuitive syntax sug
 hicurl /users
 
 # Explicit POST with JSON body and custom Header
-hicurl post /users name="Alice" role="admin" age:=28 X-Client-ID:12345
+hicurl post /users name="Alicia" role="admin" age:=28 X-Client-ID:12345
 
 # GET with query params and response filter
 hicurl get /search query=="hica lang" limit==10 .results
@@ -32,6 +33,9 @@ hicurl /v1/me -A basic:my_user:secret
 
 # Environment Base URL Resolution (loads base URL from .hicurl.env)
 hicurl /posts/1 -e staging
+
+# Export to curl format
+hicurl post /users name="Sara" age:=52 -E curl
 ```
 
 ## Running Tests
@@ -50,6 +54,9 @@ hica test tests/auth_test.hc
 
 # Environment loader test suite
 hica test tests/env_test.hc
+
+# Code export test suite
+hica test tests/export_test.hc
 ```
 
 ## Running Examples
