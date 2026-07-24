@@ -14,7 +14,7 @@ Using `hicurl`:
 hicurl https://github.com/cladam/hicurl/releases/latest/download/install.sh | sh
 ```
 
-#### ### Why this works:
+#### Why this works:
 
 1. **Implicit GET**: Passing a URL without an explicit method defaults to a `GET` request.
 2. **Auto-redirects**: The underlying `libcurl` implementation in **hicurl** automatically follows location redirects (the equivalent of `-L` in curl).
