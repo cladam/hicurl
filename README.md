@@ -32,7 +32,8 @@ HICURL_INSTALL_DIR=/usr/local/bin hicurl https://github.com/cladam/hicurl/releas
 
 ## Features
 
-- **Base CLI Parser**: Configured via `std/cli` with options for `--auth` (`-A`), `--env` (`-e`), and `--export` (`-E`).
+- **Base CLI Parser**: Configured via `std/cli` with options for `--auth` (`-A`), `--env` (`-e`), `--export` (`-E`), and `--form` (`-f`).
+- **Form Encoding Toggle (-f / --form)**: By default, `hicurl` assumes `application/json` when payload items (`=` or `:=`) are provided. The `-f` flag toggles this to serialize payload items as `application/x-www-form-urlencoded` form data.
 - **Localhost URL Shorthand**: Automatically expands positional URL arguments starting with `:` and a digit (e.g. `:8000/v1/health` or `:5000`) into `http://localhost:8000/v1/health` or `http://localhost:5000` to simplify local development workflows.
 - **Flexible Syntax Sugar**: Positionals are dynamically parsed into headers (`:`), query parameters (`==`), JSON string fields (`=`), JSON raw fields (`:=`), and response filters (`.` / `:status` / `:headers`).
 - **Automatic Method & URL Routing**: Correctly infers implicit `GET` or explicit methods (`post`, `put`, `delete`, etc.) and handles positional routing.
@@ -77,6 +78,9 @@ hicurl get /heavy-query :time :time.dns :time.ttfb
 
 # Cookie extraction
 hicurl post /api/login username=claes password=secret :cookie.session_id
+
+# Form-encoded POST payload (sends name=Alicia&age=30 instead of JSON)
+hicurl post /oauth/token name="Alicia" age:=30 -f
 ```
 
 ## Running Tests
