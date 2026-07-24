@@ -91,6 +91,10 @@ hicurl post /post bio=@tests/test_text.txt
 
 # POST request embedding file contents as a parsed JSON field (directly embedded parsed JSON structure)
 hicurl post /post user:=@tests/test_data.json
+
+# Query the GitHub API for my username, pass the URL to a new query and print my bio
+hicurl $(hicurl api.github.com/search/users q==cladam per_page==3 .items.0.url) .bio
+
 ```
 
 ## Running Tests
