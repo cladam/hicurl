@@ -43,6 +43,7 @@ HICURL_INSTALL_DIR=/usr/local/bin hicurl https://github.com/cladam/hicurl/releas
 - **Environment Base URL Resolution**: Dynamically reads environment mapping from `.hicurl.env` (via `-e` / `--env`), automatically prepending the selected base URL if the requested path is relative. Supports fallbacks to locate `.hicurl.env` from either the current directory or parent directories.
 - **Code Export Mode (curl)**: Export parsed queries, headers, and JSON bodies to a fully-escaped, standard `curl` command using `-E curl` / `--export curl`. Leverages the modern `--url-query` parameter for robust query parameter formatting, bypassing HTTP execution when active.
 - **Response Timing Diagnostics**: Seamless measurement of request execution times right from `libcurl`. Supports `:time` (formatted as ms or seconds, e.g. `142ms`, `1.84s`), plus granular breakdowns: `:time.dns` (DNS lookup), `:time.connect` (TCP connection), and `:time.ttfb` (Time To First Byte).
+- **Offline Dry-Run Mode (`--dry-run` / `-E http`)**: Skip network transmission entirely to format and print the exact raw HTTP/1.1 request payload (Method, Path, Host, standard headers, custom headers, and Body) to stdout. Echoing the core philosophy of [tbdflow's --dry-run feature](https://cladam.github.io/2025/08/23/dry-run/), this turns the CLI into a **transparent and educational tool** rather than a "magic black box"; letting you peek under the hood to inspect payloads, verify headers, and safely learn the HTTP protocol without firing off any destructive requests.
 - **Cookie Inspection**: Clean extraction of authentication & session state from response headers. Supports `:cookie` / `:cookies` (to list all received cookies) and targeted extraction via `:cookie.CookieName` (e.g. `:cookie.session_id`) returning raw, unquoted values for scripting convenience.
 - **TTY-Aware Output Formatting**: Automatically detects terminal capabilities (`stdout` TTY detection). If outputting to a TTY, JSON responses (including filtered ones) are pretty-printed and colourised with ANSI terminal colors (cyan keys, green strings, yellow numbers, magenta booleans, and dim nulls) for optimal readability. When piped, redirected, or filtered in non-TTY environments, it retains uncoloured raw output to keep shell scripts clean.
 
@@ -78,6 +79,9 @@ hicurl get /heavy-query :time :time.dns :time.ttfb
 
 # Cookie extraction
 hicurl post /api/login username=claes password=secret :cookie.session_id
+
+# Offline Dry-Run Mode (view raw request payload without sending)
+hicurl post /users name="Alicia" role="admin" --dry-run
 
 # Form-encoded POST payload (sends name=Alicia&age=30 instead of JSON)
 hicurl post /oauth/token name="Alicia" age:=30 -f

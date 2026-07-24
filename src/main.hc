@@ -25,6 +25,7 @@ fun main() {
     Parsed(r)     => {
       let verbose = has_flag(r, "verbose")
       let is_form = has_flag(r, "form")
+      let dry_run = has_flag(r, "dry-run")
       if verbose {
         println("Verbose mode is ON")
         println("CLI Parsed successfully!")
@@ -60,26 +61,36 @@ fun main() {
         println("Parsed Method: {resolved_req.method}")
       }
       
-      match export_val {
-        Some("curl") => {
-          let curl_cmd = export_curl(resolved_req)
-          println(curl_cmd)
-        },
-        Some(unsupported) => {
-          println("(unsupported export: {unsupported})")
-        },
-        None => {
-          let resp = execute_request(resolved_req)
-          match req.filter_path {
-            Some(path) => {
-              let filtered = filter_response(resp.status, resp.body, resp.headers, path)
-              print_response_body(filtered)
-            },
-            None => {
-              if verbose {
-                println("Response Body:")
+      let is_dry_run = dry_run || match export_val {
+        Some("http") => true,
+        _ => false
+      }
+
+      if is_dry_run {
+        let http_req = export_http(resolved_req)
+        println(http_req)
+      } else {
+        match export_val {
+          Some("curl") => {
+            let curl_cmd = export_curl(resolved_req)
+            println(curl_cmd)
+          },
+          Some(unsupported) => {
+            println("(unsupported export: {unsupported})")
+          },
+          None => {
+            let resp = execute_request(resolved_req)
+            match req.filter_path {
+              Some(path) => {
+                let filtered = filter_response(resp.status, resp.body, resp.headers, path)
+                print_response_body(filtered)
+              },
+              None => {
+                if verbose {
+                  println("Response Body:")
+                }
+                print_response_body(resp.body)
               }
-              print_response_body(resp.body)
             }
           }
         }

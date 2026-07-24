@@ -6,7 +6,8 @@ pub fun make_spec() =>
     |> flag("form", "f", "Serialize data items as form values")
     |> option("auth", "A", "Quick auth sugar (bearer, basic)")
     |> option("env", "e", "Select environment from .hicurl.env")
-    |> option("export", "E", "Export code instead of executing (hica, curl)")
+    |> option("export", "E", "Export code instead of executing (hica, curl, http)")
+    |> flag("dry-run", "", "Offline dry-run (print raw HTTP request stream)")
 
 pub fun cli_help_extended(spec) {
   let base_help = cli_help(spec)
@@ -34,6 +35,7 @@ pub fun cli_help_extended(spec) {
 "  hicurl /v1/me -A bearer:super-secret-token\n" +
 "  hicurl /posts/1 -e staging\n" +
 "  hicurl post /users name=\"Sara\" age:=52 -E curl\n" +
+"  hicurl post /users name=\"Alicia\" role=\"admin\" --dry-run\n" +
 "  hicurl get /heavy-query :time :time.dns :time.ttfb\n" +
 "  hicurl post /api/login username=cladam password=secret :cookie.session_id\n"
   base_help + "\n" + extra_help
