@@ -62,6 +62,126 @@ static void hc_ensure_init(void) {
   }
 }
 
+typedef struct {
+  int bit;
+  const char* name;
+} hc_feat_t;
+
+static const hc_feat_t hc_features[] = {
+#ifdef CURL_VERSION_IPV6
+  { CURL_VERSION_IPV6, "IPv6" },
+#endif
+#ifdef CURL_VERSION_ASYNCHDNS
+  { CURL_VERSION_ASYNCHDNS, "AsynchDNS" },
+#endif
+#ifdef CURL_VERSION_SSL
+  { CURL_VERSION_SSL, "SSL" },
+#endif
+#ifdef CURL_VERSION_LIBZ
+  { CURL_VERSION_LIBZ, "libz" },
+#endif
+#ifdef CURL_VERSION_NTLM
+  { CURL_VERSION_NTLM, "NTLM" },
+#endif
+#ifdef CURL_VERSION_GSSAPI
+  { CURL_VERSION_GSSAPI, "GSS-API" },
+#endif
+#ifdef CURL_VERSION_SPNEGO
+  { CURL_VERSION_SPNEGO, "SPNEGO" },
+#endif
+#ifdef CURL_VERSION_KERBEROS5
+  { CURL_VERSION_KERBEROS5, "Kerberos" },
+#endif
+#ifdef CURL_VERSION_LARGEFILE
+  { CURL_VERSION_LARGEFILE, "Largefile" },
+#endif
+#ifdef CURL_VERSION_HTTP2
+  { CURL_VERSION_HTTP2, "HTTP2" },
+#endif
+#ifdef CURL_VERSION_HTTP3
+  { CURL_VERSION_HTTP3, "HTTP3" },
+#endif
+#ifdef CURL_VERSION_HTTPS_PROXY
+  { CURL_VERSION_HTTPS_PROXY, "HTTPS-proxy" },
+#endif
+#ifdef CURL_VERSION_MULTI_SSL
+  { CURL_VERSION_MULTI_SSL, "MultiSSL" },
+#endif
+#ifdef CURL_VERSION_BROTLI
+  { CURL_VERSION_BROTLI, "Brotli" },
+#endif
+#ifdef CURL_VERSION_ZSTD
+  { CURL_VERSION_ZSTD, "Zstd" },
+#endif
+#ifdef CURL_VERSION_ALTSVC
+  { CURL_VERSION_ALTSVC, "alt-svc" },
+#endif
+#ifdef CURL_VERSION_HSTS
+  { CURL_VERSION_HSTS, "HSTS" },
+#endif
+#ifdef CURL_VERSION_UNICODE
+  { CURL_VERSION_UNICODE, "Unicode" },
+#endif
+#ifdef CURL_VERSION_UNIX_SOCKETS
+  { CURL_VERSION_UNIX_SOCKETS, "UnixSockets" },
+#endif
+#ifdef CURL_VERSION_THREADSAFE
+  { CURL_VERSION_THREADSAFE, "threadsafe" },
+#endif
+#ifdef CURL_VERSION_HYPER
+  { CURL_VERSION_HYPER, "Hyper" },
+#endif
+#ifdef CURL_VERSION_GSASL
+  { CURL_VERSION_GSASL, "GSASL" },
+#endif
+  { 0, NULL }
+};
+
+static kk_string_t kk_hicurl_version(kk_context_t* ctx) {
+  curl_version_info_data* info = curl_version_info(CURLVERSION_NOW);
+  char buf[4096];
+  buf[0] = '\0';
+
+  if (info) {
+    /* Line 1: curl <version> (<host>) <curl_version_string> */
+    snprintf(buf, sizeof(buf), "curl %s (%s) %s\n", info->version, info->host, curl_version());
+
+    /* Line 2: Release-Date: <date> */
+    char line2[256];
+#ifdef LIBCURL_TIMESTAMP
+    snprintf(line2, sizeof(line2), "Release-Date: %s\n", LIBCURL_TIMESTAMP);
+#elif defined(LIBCURL_RELEASE_DATE)
+    snprintf(line2, sizeof(line2), "Release-Date: %s\n", LIBCURL_RELEASE_DATE);
+#else
+    snprintf(line2, sizeof(line2), "Release-Date: unknown\n");
+#endif
+    strncat(buf, line2, sizeof(buf) - strlen(buf) - 1);
+
+    /* Line 3: Protocols: <list> */
+    strncat(buf, "Protocols:", sizeof(buf) - strlen(buf) - 1);
+    if (info->protocols) {
+      for (int i = 0; info->protocols[i] != NULL; i++) {
+        strncat(buf, " ", sizeof(buf) - strlen(buf) - 1);
+        strncat(buf, info->protocols[i], sizeof(buf) - strlen(buf) - 1);
+      }
+    }
+    strncat(buf, "\n", sizeof(buf) - strlen(buf) - 1);
+
+    /* Line 4: Features: <list> */
+    strncat(buf, "Features:", sizeof(buf) - strlen(buf) - 1);
+    for (int i = 0; hc_features[i].name != NULL; i++) {
+      if ((info->features & hc_features[i].bit) == hc_features[i].bit) {
+        strncat(buf, " ", sizeof(buf) - strlen(buf) - 1);
+        strncat(buf, hc_features[i].name, sizeof(buf) - strlen(buf) - 1);
+      }
+    }
+  } else {
+    snprintf(buf, sizeof(buf), "curl: unknown version\n");
+  }
+
+  return kk_string_alloc_from_utf8n((kk_ssize_t)strlen(buf), buf, ctx);
+}
+
 static kk_std_core_types__tuple3 kk_hicurl_request(
   kk_string_t  method,
   kk_string_t  url,

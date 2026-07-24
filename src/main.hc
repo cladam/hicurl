@@ -17,7 +17,10 @@ fun main() {
   let spec = make_spec()
   match cli_parse(spec) {
     Help          => println(cli_help(spec)),
-    Version       => println(cli_version_str(spec)),
+    Version       => {
+      println(cli_version_str(spec))
+      println(hicurl_version())
+    },
     CliError(msg) => eprintln("error: {msg}"),
     Parsed(r)     => {
       let verbose = has_flag(r, "verbose")
