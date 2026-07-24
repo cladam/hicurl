@@ -6,6 +6,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
+
 typedef struct {
   char*  data;
   size_t size;
@@ -235,4 +241,12 @@ static kk_std_core_types__tuple3 kk_hicurl_request(
     kk_string_box(kk_headers),
     ctx
   );
+}
+
+bool kk_hicurl_stdout_isatty(kk_context_t* ctx) {
+#ifdef _WIN32
+  return _isatty(1) != 0;
+#else
+  return isatty(1) != 0;
+#endif
 }

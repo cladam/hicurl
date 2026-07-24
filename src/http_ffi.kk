@@ -15,6 +15,12 @@ extern hicurl_request_raw(
 ) : io (int, string, string)
   c "kk_hicurl_request"
 
+extern hicurl_stdout_isatty_raw() : io bool
+  c "kk_hicurl_stdout_isatty"
+
+pub fun stdout_isatty() : io bool
+  hicurl_stdout_isatty_raw()
+
 pub fun http_request_full(method: string, url: string, body: string, content_type: string, headers: string) : io http_response
   val (status, body_str, hdrs) = hicurl_request_raw(method, url, body, content_type, headers, 0)
   Http_response(status, body_str, hdrs)
