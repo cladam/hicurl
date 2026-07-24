@@ -110,3 +110,31 @@ test "parse colon prefix that is not a port" {
   let req = parse_items(args)
   assert(req.url == ":invalid")
 }
+
+test "parse field with file contents as string" {
+  let args = ["/users", "bio=@tests/test_text.txt"]
+  let req = parse_items(args)
+  assert(length(req.json_fields) == 1)
+  
+  let f0 = match req.json_fields {
+    [f, .._] => f,
+    _ => JsonField { name: "", content: "", is_raw: false }
+  }
+  assert(f0.name == "bio")
+  assert(starts_with(f0.content, "Hello World!"))
+  assert(f0.is_raw == false)
+}
+
+test "parse field with file contents as JSON structure" {
+  let args = ["/users", "user:=@tests/test_data.json"]
+  let req = parse_items(args)
+  assert(length(req.json_fields) == 1)
+  
+  let f0 = match req.json_fields {
+    [f, .._] => f,
+    _ => JsonField { name: "", content: "", is_raw: false }
+  }
+  assert(f0.name == "user")
+  assert(contains(f0.content, "Hillary"))
+  assert(f0.is_raw == true)
+}

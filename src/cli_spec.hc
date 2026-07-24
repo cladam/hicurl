@@ -15,7 +15,9 @@ pub fun cli_help_extended(spec) {
 "  Header:Value          Add custom request headers.\n" +
 "  key==value            Add URL query parameters.\n" +
 "  key=value             Add string field to JSON request body.\n" +
-"  key:=value            Add raw JSON (number, bool, array, object) to request body.\n\n" +
+"  key:=value            Add raw JSON (number, bool, array, object) to request body.\n" +
+"  key=@file.txt         Add string field with contents of file.txt to JSON request body.\n" +
+"  key:=@file.json       Add raw JSON field with contents of file.json to JSON request body.\n\n" +
 "FILTERS & DIAGNOSTICS:\n" +
 "  .path.to.field        Filter response body using dot-path notation (supports array index: .[0]).\n" +
 "  :status               Print response HTTP status code.\n" +
