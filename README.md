@@ -16,20 +16,21 @@ HICURL_INSTALL_DIR=/usr/local/bin curl -fsSL https://github.com/cladam/hicurl/re
 
 **Note:** _No Windows installer yet_
 
-## Completed Features
+## Features
 
 - **Base CLI Parser**: Configured via `std/cli` with options for `--auth` (`-A`), `--env` (`-e`), and `--export` (`-E`).
 - **Flexible Syntax Sugar**: Positionals are dynamically parsed into headers (`:`), query parameters (`==`), JSON string fields (`=`), JSON raw fields (`:=`), and response filters (`.` / `:status` / `:headers`).
 - **Automatic Method & URL Routing**: Correctly infers implicit `GET` or explicit methods (`post`, `put`, `delete`, etc.) and handles positional routing.
-- **HTTP Execution**: Fully integrated HTTP client engine utilizing `libcurl` via Koka FFI to execute GET, POST, and other HTTP requests with the parsed headers, query parameters, and custom JSON bodies.
+- **HTTP Execution**: Fully integrated HTTP client engine utilising `libcurl` via Koka FFI to execute GET, POST, and other HTTP requests with the parsed headers, query parameters, and custom JSON bodies.
 - **Response Filtering**: Rich response filters supporting Status Codes (`:status`), Raw Headers (`:headers`), case-insensitive specific header values (`:header.Header-Name`), and nested JSON dot-path navigation including array indexing (e.g. `.path.to.field` or `.[0].name`).
 - **Auth Sugar Injection**: Seamless authentication configuration via `-A` / `--auth` supporting Bearer token headers (`-A bearer:TOKEN`) and auto-Base64 encoded Basic auth (`-A basic:user:pass`).
 - **Environment Base URL Resolution**: Dynamically reads environment mapping from `.hicurl.env` (via `-e` / `--env`), automatically prepending the selected base URL if the requested path is relative. Supports fallbacks to locate `.hicurl.env` from either the current directory or parent directories.
 - **Code Export Mode (curl)**: Export parsed queries, headers, and JSON bodies to a fully-escaped, standard `curl` command using `-E curl` / `--export curl`. Leverages the modern `--url-query` parameter for robust query parameter formatting, bypassing HTTP execution when active.
 - **Response Timing Diagnostics**: Seamless measurement of request execution times right from `libcurl`. Supports `:time` (formatted as ms or seconds, e.g. `142ms`, `1.84s`), plus granular breakdowns: `:time.dns` (DNS lookup), `:time.connect` (TCP connection), and `:time.ttfb` (Time To First Byte).
 - **Cookie Inspection**: Clean extraction of authentication & session state from response headers. Supports `:cookie` / `:cookies` (to list all received cookies) and targeted extraction via `:cookie.CookieName` (e.g. `:cookie.session_id`) returning raw, unquoted values for scripting convenience.
+- **TTY-Aware Output Formatting**: Automatically detects terminal capabilities (`stdout` TTY detection). If outputting to a TTY, JSON responses (including filtered ones) are pretty-printed and colourised with ANSI terminal colors (cyan keys, green strings, yellow numbers, magenta booleans, and dim nulls) for optimal readability. When piped, redirected, or filtered in non-TTY environments, it retains uncoloured raw output to keep shell scripts clean.
 
-## Syntax Examples (Currently Parsed)
+## Syntax Examples
 
 ```sh
 # Implicit GET
