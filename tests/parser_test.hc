@@ -9,7 +9,7 @@ test "parse implicit GET and URL" {
   assert(length(req.headers) == 0)
   assert(length(req.queries) == 0)
   assert(length(req.json_fields) == 0)
-  assert(is_none(req.filter_path))
+  assert(length(req.filter_paths) == 0)
 }
 
 test "parse explicit POST and URL" {
@@ -77,13 +77,19 @@ test "parse queries" {
 test "parse filter path" {
   let args = ["/users", ".path.to.field"]
   let req = parse_items(args)
-  assert(req.filter_path == Some(".path.to.field"))
+  assert(length(req.filter_paths) == 1)
+  let h = head(req.filter_paths)
+  let p = match h { Some(v) => v, None => "" }
+  assert(p == ".path.to.field")
 }
 
 test "parse filter status" {
   let args = ["/health", ":status"]
   let req = parse_items(args)
-  assert(req.filter_path == Some(":status"))
+  assert(length(req.filter_paths) == 1)
+  let h = head(req.filter_paths)
+  let p = match h { Some(v) => v, None => "" }
+  assert(p == ":status")
 }
 
 test "parse shorthand localhost URL with port and path" {

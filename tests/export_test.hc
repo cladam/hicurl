@@ -8,12 +8,12 @@ test "export simple GET curl" {
     headers: [],
     queries: [QueryParam { name: "limit", content: "10" }],
     json_fields: [],
-    filter_path: None,
+    filter_paths: [],
     is_form: false
   }
   
   let res = export_curl(req)
-  assert(res == "curl --url-query \"limit=10\" \"https://httpbin.org/get\"")
+  assert(res == "curl -sSL --url-query \"limit=10\" \"https://httpbin.org/get\"")
 }
 
 test "export POST curl with JSON body" {
@@ -23,7 +23,7 @@ test "export POST curl with JSON body" {
     headers: [HttpHeader { name: "X-Client", content: "hicurl" }],
     queries: [],
     json_fields: [JsonField { name: "name", content: "Alice", is_raw: false }],
-    filter_path: None,
+    filter_paths: [],
     is_form: false
   }
   
@@ -42,7 +42,7 @@ test "export POST curl with form-encoding" {
     headers: [],
     queries: [],
     json_fields: [JsonField { name: "name", content: "Alice", is_raw: false }, JsonField { name: "age", content: "30", is_raw: true }],
-    filter_path: None,
+    filter_paths: [],
     is_form: true
   }
   
@@ -73,7 +73,7 @@ test "export POST http dry-run" {
     headers: [HttpHeader { name: "X-Request-ID", content: "12345" }],
     queries: [QueryParam { name: "v", content: "2" }],
     json_fields: [JsonField { name: "username", content: "cladam", is_raw: false }],
-    filter_path: None,
+    filter_paths: [],
     is_form: false
   }
   
