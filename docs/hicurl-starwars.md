@@ -17,7 +17,7 @@ Luke Skywalker
 Search for characters with the name "Skywalker" using the `==` query parameter operator, then extract the birth year of the first result.
 
 ```sh
-hicurl swapi.dev/api/people/ search=="skywalker" .results[0].birth_year
+hicurl swapi.dev/api/people/ search=="skywalker" .results.0.birth_year
 ```
 
 **Output:**
