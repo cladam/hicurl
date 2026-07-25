@@ -1,26 +1,29 @@
 # hicurl
 
-A modern HTTP CLI built in [hica](https://www.hica.dev). Heavily inspired by the human-friendly ergonomics of HTTPie and Curlie, but powered by native C execution speed, built-in JSON/header filtering, and environment-aware routing.
+A modern HTTP CLI built in [hica](https://www.hica.dev). Heavily inspired by the human-friendly ergonomics of **HTTPie** and **Curlie**, but powered by native C execution speed, built-in JSON/header filtering, and environment-aware routing.
 
-## Install
+## Quick Install
 
-Using regular `curl`:
+Using standard `curl`:
 ```sh
 curl -fsSL https://github.com/cladam/hicurl/releases/latest/download/install.sh | sh
 ```
 
-Using `hicurl`:
+Or install `hicurl` using `hicurl` itself:
+
 ```sh
 hicurl https://github.com/cladam/hicurl/releases/latest/download/install.sh | sh
 ```
 
-#### Why this works:
+> **Why the self-installer works:**
+> 1. **Implicit GET:** URLs without an explicit method default to `GET`.
+> 
+> 2. **Auto-redirects:** `libcurl` automatically follows location redirects (`-L` in cURL).
+> 
+> 3. **TTY Auto-Detection:** When piped to `sh`, `hicurl` detects a non-TTY stdout stream and outputs clean, uncolored script text without ANSI formatting.
+> 
 
-1. **Implicit GET**: Passing a URL without an explicit method defaults to a `GET` request.
-2. **Auto-redirects**: The underlying `libcurl` implementation in **hicurl** automatically follows location redirects (the equivalent of `-L` in curl).
-3. **Piping & TTY detection**: When piped to `sh`, **hicurl** detects that stdout is not a TTY (terminal), so it prints the raw shell script directly to the pipeline without any ANSI colors or JSON formatting, making it perfectly clean for the shell to execute.
-
-This downloads the pre-built binary for your platform (`macos-arm64`, `linux-arm64` and `linux-x86_64`) and installs it to `~/.local/bin`. Override the install directory with `HICURL_INSTALL_DIR`:
+Installs binary (`macos-arm64`, `linux-arm64`, `linux-x86_64`) to `~/.local/bin`. Override target location with `HICURL_INSTALL_DIR=/usr/local/bin`.
 
 ```sh
 HICURL_INSTALL_DIR=/usr/local/bin curl -fsSL https://github.com/cladam/hicurl/releases/latest/download/install.sh | sh
@@ -30,108 +33,114 @@ HICURL_INSTALL_DIR=/usr/local/bin hicurl https://github.com/cladam/hicurl/releas
 
 **Note:** _No Windows installer yet_
 
-## Features
+## Key Features
 
-- **Base CLI Parser**: Configured via `std/cli` with options for `--auth` (`-A`), `--env` (`-e`), `--export` (`-E`), and `--form` (`-f`).
-- **Form Encoding Toggle (-f / --form)**: By default, `hicurl` assumes `application/json` when payload items (`=` or `:=`) are provided. The `-f` flag toggles this to serialize payload items as `application/x-www-form-urlencoded` form data.
-- **Localhost URL Shorthand**: Automatically expands positional URL arguments starting with `:` and a digit (e.g. `:8000/v1/health` or `:5000`) into `http://localhost:8000/v1/health` or `http://localhost:5000` to simplify local development workflows.
-- **Flexible Syntax Sugar**: Positionals are dynamically parsed into headers (`:`), query parameters (`==`), JSON string fields (`=`), JSON raw fields (`:=`), string field from file (`=@`), raw JSON field from file (`:=@`), and response filters (`.` / `:status` / `:headers`).
-- **Automatic Method & URL Routing**: Correctly infers implicit `GET` or explicit methods (`post`, `put`, `delete`, etc.) and handles positional routing.
-- **HTTP Execution**: Fully integrated HTTP client engine utilising `libcurl` via Koka FFI to execute GET, POST, and other HTTP requests with the parsed headers, query parameters, and custom JSON bodies.
-- **Response Filtering**: Rich response filters supporting Status Codes (`:status`), Raw Headers (`:headers`), case-insensitive specific header values (`:header.Header-Name`), and nested JSON dot-path navigation including array indexing (e.g. `.path.to.field` or `.[0].name`).
-- **Auth Sugar Injection**: Seamless authentication configuration via `-A` / `--auth` supporting Bearer token headers (`-A bearer:TOKEN`) and auto-Base64 encoded Basic auth (`-A basic:user:pass`).
-- **Environment Base URL Resolution**: Dynamically reads environment mapping from `.hicurl.env` (via `-e` / `--env`), automatically prepending the selected base URL if the requested path is relative. Supports fallbacks to locate `.hicurl.env` from either the current directory or parent directories.
-- **Code Export Mode (curl)**: Export parsed queries, headers, and JSON bodies to a fully-escaped, standard `curl` command using `-E curl` / `--export curl`. Leverages the modern `--url-query` parameter for robust query parameter formatting, bypassing HTTP execution when active.
-- **Response Timing Diagnostics**: Seamless measurement of request execution times right from `libcurl`. Supports `:time` (formatted as ms or seconds, e.g. `142ms`, `1.84s`), plus granular breakdowns: `:time.dns` (DNS lookup), `:time.connect` (TCP connection), and `:time.ttfb` (Time To First Byte).
-- **Offline Dry-Run Mode (`--dry-run` / `-E http`)**: Skip network transmission entirely to format and print the exact raw HTTP/1.1 request payload (Method, Path, Host, standard headers, custom headers, and Body) to stdout. Echoing the core philosophy of [tbdflow's --dry-run feature](https://cladam.github.io/2025/08/23/dry-run/), this turns the CLI into a **transparent and educational tool** rather than a "magic black box"; letting you peek under the hood to inspect payloads, verify headers, and safely learn the HTTP protocol without firing off any destructive requests.
-- **Cookie Inspection**: Clean extraction of authentication & session state from response headers. Supports `:cookie` / `:cookies` (to list all received cookies) and targeted extraction via `:cookie.CookieName` (e.g. `:cookie.session_id`) returning raw, unquoted values for scripting convenience.
-- **TTY-Aware Output Formatting**: Automatically detects terminal capabilities (`stdout` TTY detection). If outputting to a TTY, JSON responses (including filtered ones) are pretty-printed and colourised with ANSI terminal colors (cyan keys, green strings, yellow numbers, magenta booleans, and dim nulls) for optimal readability. When piped, redirected, or filtered in non-TTY environments, it retains uncoloured raw output to keep shell scripts clean.
+### Syntax Sugar & Request Builder
+
+* **Flexible Field Parsing:** Positionals dynamically map to headers (`:`), query params (`==`), JSON strings (`=`), raw JSON types (`:=`), file string embedding (`=@`), and file JSON embedding (`:=@`).
+* **Localhost Shorthand:** Auto-expands `:8000/v1/health` or `:5000` to `http://localhost:8000/...` for fast local dev.
+* **Form Data Toggle (`-f` / `--form`):** Easily switch from default JSON payloads to `application/x-www-form-urlencoded`.
+* **Automatic Routing:** Infers implicit `GET` or explicit methods (`post`, `put`, `delete`) effortlessly.
+
+### Native Inspection & Response Filtering
+
+* **Zero-`jq` Dot-Paths:** Filter JSON responses directly with dot notation and array indexing (`.data.users[0].id`).
+* **Header & Status Selectors:** Directly extract status codes (`:status`), raw headers (`:headers`), or specific case-insensitive values (`:header.Content-Type`).
+* **Cookie Extraction:** Extract session state with `:cookie` or targeted values like `:cookie.session_id`.
+* **Latency Diagnostics:** Measure execution times via `libcurl`: `:time` (e.g., `142ms`), `:time.dns`, `:time.connect`, and `:time.ttfb`.
+
+### Workflow, Environments & Safety
+
+* **Environment Base URLs (`-e` / `--env`):** Resolves base URLs from `.hicurl.env`, walking up parent directories automatically.
+* **Auth Shortcuts (`-A` / `--auth`):** Built-in support for Bearer tokens (`-A bearer:TOKEN`) and auto-Base64 Basic auth (`-A basic:user:pass`).
+* **Offline Dry-Run Mode (`--dry-run`):** Inspect the raw HTTP/1.1 request stream (Method, Path, Headers, Body) without sending any bytes across the wire—inspired by [tbdflow's dry-run design philosophy](https://www.google.com/search?q=https://cladam.github.io/2025/08/23/dry-run/).
+* **Code Export (`-E curl`):** Export queries to fully-escaped standard `curl` commands using modern `--url-query` flags.
+* **Smart TTY Output:** Colorized ANSI JSON formatting for interactive terminals; clean raw text when redirected or piped.
 
 ## Syntax Examples
+
+### Basic Requests & Local Dev
 
 ```sh
 # Implicit GET
 hicurl /users
 
-# Localhost URL Shorthand (connects to http://localhost:8000/v1/health)
+# Localhost Shorthand (connects to http://localhost:8000/v1/health)
 hicurl :8000/v1/health :status
 
-# Explicit POST with JSON body and custom Header
-hicurl post /users name="Alicia" role="admin" age:=28 X-Client-ID:12345
-
-# GET with query params and response filter
+# Query parameters + Response filtering
 hicurl get /search query=="hica lang" limit==10 .results
 
-# Bearer Token Auth
-hicurl /v1/me -A bearer:super-secret-token
+```
 
-# Auto-Base64 Basic Auth
-hicurl /v1/me -A basic:my_user:secret
+### JSON Payloads & File Embedding
 
-# Environment Base URL Resolution (loads base URL from .hicurl.env)
-hicurl /posts/1 -e staging
+```sh
+# Explicit POST with mixed JSON types & headers
+hicurl post /users name="Alicia" role="admin" age:=28 X-Client-ID:12345
 
-# Export to curl format
-hicurl post /users name="Sara" age:=52 -E curl
-
-# Measure response time and latency breakdowns
-hicurl get /heavy-query :time :time.dns :time.ttfb
-
-# Cookie extraction
-hicurl post /api/login username=claes password=secret :cookie.session_id
-
-# Offline Dry-Run Mode (view raw request payload without sending)
-hicurl post /users name="Alicia" role="admin" --dry-run
-
-# Form-encoded POST payload (sends name=Alicia&age=30 instead of JSON)
-hicurl post /oauth/token name="Alicia" age:=30 -f
-
-# POST request embedding file contents as a JSON string field
+# Embed local text file as JSON string field
 hicurl post /post bio=@tests/test_text.txt
 
-# POST request embedding file contents as a parsed JSON field (directly embedded parsed JSON structure)
+# Embed local JSON file directly into request body
 hicurl post /post user:=@tests/test_data.json
 
-# Query the GitHub API for my username, pass the URL to a new query and print my bio
+# Form-encoded POST (application/x-www-form-urlencoded)
+hicurl post /oauth/token name="Alicia" age:=30 -f
+
+```
+
+### Auth, Environments & Diagnostics
+
+```sh
+# Bearer & Basic Auth Shortcuts
+hicurl /v1/me -A bearer:super-secret-token
+hicurl /v1/me -A basic:my_user:secret
+
+# Base URL resolution via .hicurl.env
+hicurl /posts/1 -e staging
+
+# Latency & Cookie Inspection
+hicurl get /heavy-query :time :time.dns :time.ttfb
+hicurl post /api/login username=claes password=secret :cookie.session_id
+
+```
+
+### Safety, Exporting & Piping
+
+```sh
+# Offline Dry-Run (view raw request without hitting the network)
+hicurl post /users name="Alicia" role="admin" --dry-run
+
+# Export to standard cURL command
+hicurl post /users name="Sara" age:=52 -E curl
+
+# Command Composition: Query GitHub API, pass URL to nested hicurl query & extract bio
 hicurl $(hicurl api.github.com/search/users q==cladam per_page==3 .items.0.url) .bio
 
 ```
 
-## Running Tests
-
-To run the full test suite:
+## Testing & Development
 
 ```sh
-# Parser test suite
+# Run individual test suites
 hica test tests/parser_test.hc
-
-# Response filter test suite
 hica test tests/filter_test.hc
-
-# Auth injection test suite
 hica test tests/auth_test.hc
-
-# Environment loader test suite
 hica test tests/env_test.hc
-
-# Code export test suite
 hica test tests/export_test.hc
-```
 
-## Running Examples
-
-To execute the examples shell script using the compiled binary:
-
-```sh
+# Run compiled examples
 ./examples/run_hicurl_examples.sh
 ```
 
-## Toolchain Development commands
+### Toolchain Commands
 
 ```sh
-hica build   # compile to binary
-hica run     # compile and run
-hica fmt     # format according to hica style guide
-hica check   # type-check without emitting
-hica clean   # remove generated files
+hica build   # Compile to native binary
+hica run     # Compile and execute
+hica fmt     # Format according to Hica style guide
+hica check   # Type-check project
+hica clean   # Clean generated build artifacts
+
 ```
