@@ -23,7 +23,7 @@ pub struct RequestSpec {
   headers: list<HttpHeader>,
   queries: list<QueryParam>,
   json_fields: list<JsonField>,
-  filter_path: maybe<string>,
+  filter_paths: list<string>,
   is_form: bool
 }
 
@@ -34,6 +34,6 @@ pub fun empty_request() =>
     headers: [],
     queries: [],
     json_fields: [],
-    filter_path: None,
+    filter_paths: [],
     is_form: false
   }

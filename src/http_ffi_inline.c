@@ -236,7 +236,7 @@ static kk_std_core_types__tuple3 kk_hicurl_request(
   curl_easy_setopt(curl, CURLOPT_HEADERDATA, (void*)&resp_headers);
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
-  curl_easy_setopt(curl, CURLOPT_USERAGENT, "hica-http/1.0");
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, "hicurl/0.7.1");
 
   if (timeout_secs > 0) {
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)timeout_secs);

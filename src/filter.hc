@@ -60,7 +60,10 @@ pub fun filter_response(status: int, body: string, headers: string, filter_path:
     join(lines_list, "\n")
   } else if starts_with(filter_path, ":header.") {
     let header_name = filter_path[8:]
-    unwrap_maybe_or(find_header(headers, header_name), "(header not found)")
+    let hdrs = parse_headers(headers)
+    let matching = filter(hdrs, (h) => match h { Header { name: n, value: _ } => to_lower(n) == to_lower(header_name) })
+    let last_val = fold(matching, None, (acc, h) => match h { Header { name: _, value: v } => Some(v) })
+    unwrap_maybe_or(last_val, "(header not found)")
   } else if filter_path == ":time" {
     unwrap_maybe_or(map_maybe(find_header(headers, "__hicurl_total_us"), format_time_us), "(timing not available)")
   } else if filter_path == ":time.dns" {

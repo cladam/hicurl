@@ -52,7 +52,7 @@ fun main() {
         headers: resolved_headers,
         queries: req.queries,
         json_fields: req.json_fields,
-        filter_path: req.filter_path,
+        filter_paths: req.filter_paths,
         is_form: is_form
       }
       
@@ -80,16 +80,23 @@ fun main() {
           },
           None => {
             let resp = execute_request(resolved_req)
-            match req.filter_path {
-              Some(path) => {
-                let filtered = filter_response(resp.status, resp.body, resp.headers, path)
-                print_response_body(filtered)
-              },
-              None => {
+            match req.filter_paths {
+              [] => {
                 if verbose {
                   println("Response Body:")
                 }
                 print_response_body(resp.body)
+              },
+              paths => {
+                let filtered_results = map(paths, (path) => filter_response(resp.status, resp.body, resp.headers, path))
+                if length(paths) == 1 {
+                  match head(filtered_results) {
+                    Some(res) => { print_response_body(res) },
+                    None => {}
+                  }
+                } else {
+                  println(join(filtered_results, "\n"))
+                }
               }
             }
           }

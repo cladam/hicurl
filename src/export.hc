@@ -75,7 +75,7 @@ pub fun export_http(req: RequestSpec) : string {
   }
   
   let host_header = "Host: " + host
-  let ua_header = "User-Agent: hica-http/1.0"
+  let ua_header = "User-Agent: hicurl/0.7.1"
   let accept_header = "Accept: */*"
   
   let std_headers = [host_header, ua_header, accept_header]
@@ -104,7 +104,7 @@ pub fun export_http(req: RequestSpec) : string {
 }
 
 pub fun export_curl(req: RequestSpec) : string {
-  let parts = ["curl"]
+  let parts = ["curl", "-sSL"]
   
   // Add method if not GET (or if explicit)
   let method_upper = to_upper(req.method)
