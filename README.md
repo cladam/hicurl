@@ -20,7 +20,7 @@ hicurl https://github.com/cladam/hicurl/releases/latest/download/install.sh | sh
 > 
 > 2. **Auto-redirects:** `libcurl` automatically follows location redirects (`-L` in cURL).
 > 
-> 3. **TTY Auto-Detection:** When piped to `sh`, `hicurl` detects a non-TTY stdout stream and outputs clean, uncolored script text without ANSI formatting.
+> 3. **TTY Auto-Detection:** When piped to `sh`, `hicurl` detects a non-TTY stdout stream and outputs clean, uncoloured script text without ANSI formatting.
 > 
 
 Installs binary (`macos-arm64`, `linux-arm64`, `linux-x86_64`) to `~/.local/bin`. Override target location with `HICURL_INSTALL_DIR=/usr/local/bin`.
@@ -54,8 +54,9 @@ HICURL_INSTALL_DIR=/usr/local/bin hicurl https://github.com/cladam/hicurl/releas
 * **Environment Base URLs (`-e` / `--env`):** Resolves base URLs from `.hicurl.env`, walking up parent directories automatically.
 * **Auth Shortcuts (`-A` / `--auth`):** Built-in support for Bearer tokens (`-A bearer:TOKEN`) and auto-Base64 Basic auth (`-A basic:user:pass`).
 * **Offline Dry-Run Mode (`--dry-run`):** Inspect the raw HTTP/1.1 request stream (Method, Path, Headers, Body) without sending any bytes across the wire—inspired by [tbdflow's dry-run design philosophy](https://www.google.com/search?q=https://cladam.github.io/2025/08/23/dry-run/).
-* **Code Export (`-E curl`):** Export queries to fully-escaped standard `curl` commands using modern `--url-query` flags.
-* **Smart TTY Output:** Colorized ANSI JSON formatting for interactive terminals; clean raw text when redirected or piped.
+* **Code Export (`--curl` / `-E curl`):** Export queries to fully-escaped standard `curl` commands using modern `--url-query` flags.
+* **Structured Output (`--json` / `-j`):** Output the entire response (status, headers, body) as a structured JSON object for automation and scripting.
+* **Smart TTY Output:** Colourised ANSI JSON formatting for interactive terminals; clean raw text when redirected or piped.
 
 ## Syntax Examples
 
@@ -70,7 +71,6 @@ hicurl :8000/v1/health :status
 
 # Query parameters + Response filtering
 hicurl get /search query=="hica lang" limit==10 .results
-
 ```
 
 ### JSON Payloads & File Embedding
@@ -87,7 +87,6 @@ hicurl post /post user:=@tests/test_data.json
 
 # Form-encoded POST (application/x-www-form-urlencoded)
 hicurl post /oauth/token name="Alicia" age:=30 -f
-
 ```
 
 ### Auth, Environments & Diagnostics
@@ -103,7 +102,6 @@ hicurl /posts/1 -e staging
 # Latency & Cookie Inspection
 hicurl get /heavy-query :time :time.dns :time.ttfb
 hicurl post /api/login username=claes password=secret :cookie.session_id
-
 ```
 
 ### Safety, Exporting & Piping
@@ -113,12 +111,18 @@ hicurl post /api/login username=claes password=secret :cookie.session_id
 hicurl post /users name="Alicia" role="admin" --dry-run
 
 # Export to standard cURL command
-hicurl post /users name="Sara" age:=52 -E curl
+hicurl post /users name="Sara" age:=52 --curl
+
+# Output full response as structured JSON
+hicurl /api/health --json
 
 # Command Composition: Query GitHub API, pass URL to nested hicurl query & extract bio
 hicurl $(hicurl api.github.com/search/users q==cladam per_page==3 .items.0.url) .bio
-
 ```
+
+### hicurl and Starwars
+
+See [hicurl-starwars.md](docs/hicurl-starwars.md) for some real and valuable use-cases!
 
 ## Testing & Development
 
@@ -142,5 +146,4 @@ hica run     # Compile and execute
 hica fmt     # Format according to Hica style guide
 hica check   # Type-check project
 hica clean   # Clean generated build artifacts
-
 ```

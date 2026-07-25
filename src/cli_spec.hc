@@ -7,6 +7,8 @@ pub fun make_spec() =>
     |> option("auth", "A", "Quick auth sugar (bearer, basic)")
     |> option("env", "e", "Select environment from .hicurl.env")
     |> option("export", "E", "Export code instead of executing (hica, curl, http)")
+    |> flag("curl", "", "Print exact underlying curl command")
+    |> flag("json", "j", "Output structured JSON containing full response data")
     |> flag("dry-run", "", "Offline dry-run (print raw HTTP request stream)")
 
 pub fun cli_help_extended(spec) {

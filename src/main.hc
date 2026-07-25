@@ -26,6 +26,8 @@ fun main() {
       let verbose = has_flag(r, "verbose")
       let is_form = has_flag(r, "form")
       let dry_run = has_flag(r, "dry-run")
+      let curl_flag = has_flag(r, "curl")
+      let json_out = has_flag(r, "json")
       if verbose {
         println("Verbose mode is ON")
         println("CLI Parsed successfully!")
@@ -33,7 +35,7 @@ fun main() {
 
       let env = get_opt(r, "env")
       let auth = get_opt(r, "auth")
-      let export_val = get_opt(r, "export")
+      let export_val = if curl_flag { Some("curl") } else { get_opt(r, "export") }
       let pos = get_positionals(r)
       
       if verbose {
@@ -80,22 +82,40 @@ fun main() {
           },
           None => {
             let resp = execute_request(resolved_req)
-            match req.filter_paths {
-              [] => {
-                if verbose {
-                  println("Response Body:")
-                }
-                print_response_body(resp.body)
-              },
-              paths => {
-                let filtered_results = map(paths, (path) => filter_response(resp.status, resp.body, resp.headers, path))
-                if length(paths) == 1 {
-                  match head(filtered_results) {
-                    Some(res) => { print_response_body(res) },
-                    None => {}
+            if json_out {
+              let parsed_body = match parse_json(resp.body) {
+                Ok(j) => j,
+                Err(_) => JString(resp.body)
+              }
+              
+              let out = JObject([
+                ("status", JInt(resp.status)),
+                ("headers", JString(resp.headers)),
+                ("body", parsed_body)
+              ])
+              if stdout_isatty() {
+                println(pretty_colorize_json(out, 0))
+              } else {
+                println(json_stringify(out))
+              }
+            } else {
+              match req.filter_paths {
+                [] => {
+                  if verbose {
+                    println("Response Body:")
                   }
-                } else {
-                  println(join(filtered_results, "\n"))
+                  print_response_body(resp.body)
+                },
+                paths => {
+                  let filtered_results = map(paths, (path) => filter_response(resp.status, resp.body, resp.headers, path))
+                  if length(paths) == 1 {
+                    match head(filtered_results) {
+                      Some(res) => { print_response_body(res) },
+                      None => {}
+                    }
+                  } else {
+                    println(join(filtered_results, "\n"))
+                  }
                 }
               }
             }
@@ -148,6 +168,19 @@ pub fun pretty_colorize_json_no_pad(j: Json, indent: int) : string => match j {
   JString(s) => green("\"" + escape_string(s) + "\""),
   JArray(_) => pretty_colorize_json(j, indent),
   JObject(_) => pretty_colorize_json(j, indent)
+}
+
+pub fun json_stringify(j: Json) : string => match j {
+  JNull => "null",
+  JBool(b) => if b { "true" } else { "false" },
+  JInt(n) => show(n),
+  JNumber(n) => json_number(n),
+  JString(s) => "\"" + escape_string(s) + "\"",
+  JArray(items) => "[" + join(map(items, json_stringify), ",") + "]",
+  JObject(fields) => {
+    let field_strings = map(fields, (f) => "\"" + escape_string(f.0) + "\":" + json_stringify(f.1))
+    "\{" + join(field_strings, ",") + "\}"
+  }
 }
 
 pub fun print_response_body(body: string) {
