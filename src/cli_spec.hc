@@ -1,12 +1,14 @@
 import "std/cli"
 
 pub fun make_spec() =>
-  cli("hicurl", "0.8.1", "hicurl - a modern HTTP CLI")
+  cli("hicurl", "0.9.0", "hicurl - a modern HTTP CLI")
     |> flag("verbose", "v", "Enable verbose output")
     |> flag("form", "f", "Serialize data items as form values")
     |> option("auth", "A", "Quick auth sugar (bearer, basic)")
     |> option("env", "e", "Select environment from .hicurl.env")
     |> option("export", "E", "Export code instead of executing (hica, curl, http)")
+    |> option("output", "o", "Write to file instead of stdout")
+    |> flag("remote-name", "O", "Write output to a file named as the remote file")
     |> flag("curl", "", "Print exact underlying curl command")
     |> flag("json", "j", "Output structured JSON containing full response data")
     |> flag("dry-run", "", "Offline dry-run (print raw HTTP request stream)")

@@ -57,6 +57,7 @@ HICURL_INSTALL_DIR=/usr/local/bin hicurl https://github.com/cladam/hicurl/releas
 * **Code Export (`--curl` / `-E curl`):** Export queries to fully-escaped standard `curl` commands using modern `--url-query` flags.
 * **Structured Output (`--json` / `-j`):** Output the entire response (status, headers, body) as a structured JSON object for automation and scripting.
 * **Smart TTY Output:** Colourised ANSI JSON formatting for interactive terminals; clean raw text when redirected or piped.
+* **File Downloads (`-o` / `-O`):** Save responses directly to a specific file (`-o output.json`) or automatically extract the remote filename from the URL (`-O`).
 
 ## Syntax Examples
 
@@ -104,9 +105,15 @@ hicurl get /heavy-query :time :time.dns :time.ttfb
 hicurl post /api/login username=claes password=secret :cookie.session_id
 ```
 
-### Safety, Exporting & Piping
+### Safety, Exporting, Piping & Downloads
 
 ```sh
+# Download file to a specific name
+hicurl get https://example.com/data.csv -o my_data.csv
+
+# Download file using remote name (saves as data.csv)
+hicurl get https://example.com/data.csv -O
+
 # Offline Dry-Run (view raw request without hitting the network)
 hicurl post /users name="Alicia" role="admin" --dry-run
 

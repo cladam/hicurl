@@ -75,7 +75,7 @@ pub fun export_http(req: RequestSpec) : string {
   }
   
   let host_header = "Host: " + host
-  let ua_header = "User-Agent: hicurl/0.8.1"
+  let ua_header = "User-Agent: hicurl/0.9.0"
   let accept_header = "Accept: */*"
   
   let std_headers = [host_header, ua_header, accept_header]
